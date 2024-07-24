@@ -18,7 +18,7 @@ func main() {
 		return
 	}
 
-	fmt.Printf("Peter was %d years, %d months, %d days old on %s.\n", year, month, day, birthday)
+	fmt.Printf("Peter was %d years, %d months, %d days old on %s.\n", year, month, day, now.Format("2006.01.02"))
 }
 
 func calc(now time.Time, birthday string) (int, int, int, error) {
