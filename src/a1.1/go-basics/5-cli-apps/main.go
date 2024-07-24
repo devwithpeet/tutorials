@@ -2,9 +2,9 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -29,7 +29,12 @@ func main() {
 			break
 		}
 
-		year, month, day, err := calc(now, name, birthday)
+		born, err := parseBirthday(birthday)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		year, month, day, err := calculateTimeSpent(now, born)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -50,30 +55,27 @@ func shouldExit(name string) bool {
 	return false
 }
 
-func calc(now time.Time, name, birthday string) (int, int, int, error) {
-	split := strings.Split(birthday, "-")
-
-	bornYear, _ := strconv.Atoi(split[0])
-	bornMonth, _ := strconv.Atoi(split[1])
-	bornDay, _ := strconv.Atoi(split[2])
-
-	currentYear := now.Year()
-	currentMonth := int(now.Month())
-	currentDay := now.Day()
-
-	if bornYear > currentYear {
-		return 0, 0, 0, fmt.Errorf("%s was born in the future.", name)
+func parseBirthday(birthday string) (time.Time, error) {
+	bDay, err := time.Parse("2006-01-02", birthday)
+	if err != nil {
+		return time.Time{}, err
 	}
 
-	if bornYear == currentYear && bornMonth > currentMonth {
-		return 0, 0, 0, fmt.Errorf("%s was born in the future.", name)
+	return bDay, nil
+}
+
+func calculateTimeSpent(now, born time.Time) (int, int, int, error) {
+	if born.After(now) {
+		return 0, 0, 0, errors.New("born in the future")
 	}
 
-	if bornYear == currentYear && bornMonth == currentMonth && bornDay > currentDay {
-		return 0, 0, 0, fmt.Errorf("%s was born in the future.", name)
-	}
+	currentYear, cMonth, _ := now.Date()
+	bornYear, bMonth, _ := born.Date()
+	days := now.Day() - born.Day()
 
-	days := currentDay - bornDay
+	bornMonth := int(bMonth)
+	currentMonth := int(cMonth)
+
 	if days < 0 {
 		days = getMonthLength(currentYear, bornMonth) + days
 		if bornMonth == 12 {

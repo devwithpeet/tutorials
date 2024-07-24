@@ -5,12 +5,11 @@ import (
 	"time"
 )
 
-func Test_calc(t *testing.T) {
+func Test_calculateTimeSpent(t *testing.T) {
 	today, _ := time.Parse(time.DateOnly, "2024-05-20")
 
 	tests := []struct {
 		name       string
-		username   string
 		birthday   string
 		wantYears  int
 		wantMonths int
@@ -19,7 +18,6 @@ func Test_calc(t *testing.T) {
 	}{
 		{
 			name:       "Today's year old",
-			username:   "Peter",
 			birthday:   today.Format(time.DateOnly),
 			wantYears:  0,
 			wantMonths: 0,
@@ -27,7 +25,6 @@ func Test_calc(t *testing.T) {
 		},
 		{
 			name:       "Very young",
-			username:   "Peter",
 			birthday:   today.Add(-24 * time.Hour).Format(time.DateOnly),
 			wantYears:  0,
 			wantMonths: 0,
@@ -35,7 +32,6 @@ func Test_calc(t *testing.T) {
 		},
 		{
 			name:       "Brian Kernighan",
-			username:   "Peter",
 			birthday:   "1942-01-30",
 			wantYears:  82,
 			wantMonths: 3,
@@ -43,7 +39,6 @@ func Test_calc(t *testing.T) {
 		},
 		{
 			name:       "Linux Torvalds",
-			username:   "Peter",
 			birthday:   "1969-12-28",
 			wantYears:  54,
 			wantMonths: 4,
@@ -52,7 +47,6 @@ func Test_calc(t *testing.T) {
 		},
 		{
 			name:       "Peter's birthday",
-			username:   "Peter",
 			birthday:   "1981-08-17",
 			wantYears:  42,
 			wantMonths: 9,
@@ -62,7 +56,6 @@ func Test_calc(t *testing.T) {
 		// Logo
 		{
 			name:       "Seymour Papert",
-			username:   "Peter",
 			birthday:   "1928-02-29",
 			wantYears:  96,
 			wantMonths: 2,
@@ -71,7 +64,6 @@ func Test_calc(t *testing.T) {
 		},
 		{
 			name:       "Future birthday",
-			username:   "Peter",
 			birthday:   "2050-08-17",
 			wantYears:  0,
 			wantMonths: 0,
@@ -80,7 +72,6 @@ func Test_calc(t *testing.T) {
 		},
 		{
 			name:       "Future birthday 2",
-			username:   "Peter",
 			birthday:   "2024-06-17",
 			wantYears:  0,
 			wantMonths: 0,
@@ -89,7 +80,6 @@ func Test_calc(t *testing.T) {
 		},
 		{
 			name:       "Future birthday 3",
-			username:   "Joe",
 			birthday:   "2024-05-21",
 			wantYears:  0,
 			wantMonths: 0,
@@ -99,20 +89,26 @@ func Test_calc(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotYears, gotMonths, gotDays, err := calc(today, tt.username, tt.birthday)
+			born, err := time.Parse(time.DateOnly, tt.birthday)
+			if err != nil {
+				t.Errorf("time.Parse() error = %v", err)
+				return
+			}
+
+			gotYears, gotMonths, gotDays, err := calculateTimeSpent(today, born)
 			if tt.wantError && err == nil || !tt.wantError && err != nil {
-				t.Errorf("calc() error = %v, wantError %v", err, tt.wantError)
+				t.Errorf("calculateTimeSpent() error = %v, wantError %v", err, tt.wantError)
 				return
 			}
 
 			if gotYears != tt.wantYears {
-				t.Errorf("calc() gotYears = %v, wantYears %v", gotYears, tt.wantYears)
+				t.Errorf("calculateTimeSpent() gotYears = %v, wantYears %v", gotYears, tt.wantYears)
 			}
 			if gotMonths != tt.wantMonths {
-				t.Errorf("calc() gotMonths = %v, wantMonths %v", gotMonths, tt.wantMonths)
+				t.Errorf("calculateTimeSpent() gotMonths = %v, wantMonths %v", gotMonths, tt.wantMonths)
 			}
 			if gotDays != tt.wantDays {
-				t.Errorf("calc() gotDays = %v, wantDays %v", gotDays, tt.wantDays)
+				t.Errorf("calculateTimeSpent() gotDays = %v, wantDays %v", gotDays, tt.wantDays)
 			}
 		})
 	}
