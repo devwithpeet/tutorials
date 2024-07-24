@@ -1,50 +1,53 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 )
 
 func main() {
 	now := time.Now()
 
-	const birthday = "1981-08-17"
+	const name = "Peter"
+	const birthday = "2024-07-22"
 
-	year, month, day, err := calc(now, birthday)
+	born, err := parseBirthday(birthday)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	fmt.Printf("Peter was %d years, %d months, %d days old on %s.\n", year, month, day, now.Format("2006.01.02"))
+	year, month, day, err := calculateTimeSpent(now, born)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Printf("%s is %d years, %d months, %d days old on %s.\n", name, year, month, day, now.Format("2006.01.02"))
 }
 
-func calc(now time.Time, birthday string) (int, int, int, error) {
-	split := strings.Split(birthday, "-")
-
-	bornYear, _ := strconv.Atoi(split[0])
-	bornMonth, _ := strconv.Atoi(split[1])
-	bornDay, _ := strconv.Atoi(split[2])
-
-	currentYear := now.Year()
-	currentMonth := int(now.Month())
-	currentDay := now.Day()
-
-	if bornYear > currentYear {
-		return 0, 0, 0, fmt.Errorf("Peter was born in the future.")
+func parseBirthday(birthday string) (time.Time, error) {
+	bDay, err := time.Parse("2006-01-02", birthday)
+	if err != nil {
+		return time.Time{}, err
 	}
 
-	if bornYear == currentYear && bornMonth > currentMonth {
-		return 0, 0, 0, fmt.Errorf("Peter was born in the future.")
+	return bDay, nil
+}
+
+func calculateTimeSpent(now, born time.Time) (int, int, int, error) {
+	if born.After(now) {
+		return 0, 0, 0, errors.New("born in the future")
 	}
 
-	if bornYear == currentYear && bornMonth == currentMonth && bornDay > currentDay {
-		return 0, 0, 0, fmt.Errorf("Peter was born in the future.")
-	}
+	currentYear, cMonth, _ := now.Date()
+	bornYear, bMonth, _ := born.Date()
+	days := now.Day() - born.Day()
 
-	days := currentDay - bornDay
+	bornMonth := int(bMonth)
+	currentMonth := int(cMonth)
+
 	if days < 0 {
 		days = getMonthLength(currentYear, bornMonth) + days
 		if bornMonth == 12 {
@@ -57,13 +60,13 @@ func calc(now time.Time, birthday string) (int, int, int, error) {
 
 	months := currentMonth - bornMonth
 	if months < 0 {
-		months = 12 + months
+		months += 12
 		bornYear += 1
 	}
 
 	return currentYear - bornYear, months, days, nil
-}
 
+}
 func getMonthLength(year, month int) int {
 	switch month {
 	case 1, 3, 5, 7, 8, 10, 12:

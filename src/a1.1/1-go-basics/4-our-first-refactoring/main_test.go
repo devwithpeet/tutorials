@@ -89,20 +89,26 @@ func Test_calc(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotYears, gotMonths, gotDays, err := calc(today, tt.birthday)
+			born, err := time.Parse(time.DateOnly, tt.birthday)
+			if err != nil {
+				t.Errorf("time.Parse() error = %v", err)
+				return
+			}
+
+			gotYears, gotMonths, gotDays, err := calculateTimeSpent(today, born)
 			if tt.wantError && err == nil || !tt.wantError && err != nil {
-				t.Errorf("calc() error = %v, wantError %v", err, tt.wantError)
+				t.Errorf("calculateTimeSpent() error = %v, wantError %v", err, tt.wantError)
 				return
 			}
 
 			if gotYears != tt.wantYears {
-				t.Errorf("calc() gotYears = %v, wantYears %v", gotYears, tt.wantYears)
+				t.Errorf("calculateTimeSpent() gotYears = %v, wantYears %v", gotYears, tt.wantYears)
 			}
 			if gotMonths != tt.wantMonths {
-				t.Errorf("calc() gotMonths = %v, wantMonths %v", gotMonths, tt.wantMonths)
+				t.Errorf("calculateTimeSpent() gotMonths = %v, wantMonths %v", gotMonths, tt.wantMonths)
 			}
 			if gotDays != tt.wantDays {
-				t.Errorf("calc() gotDays = %v, wantDays %v", gotDays, tt.wantDays)
+				t.Errorf("calculateTimeSpent() gotDays = %v, wantDays %v", gotDays, tt.wantDays)
 			}
 		})
 	}
