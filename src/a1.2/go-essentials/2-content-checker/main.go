@@ -57,7 +57,7 @@ func findFiles(root string) ([]string, error) {
 	return filepath.Glob(pattern)
 }
 
-const maxErrors = 3
+const maxErrors = 10
 
 func CrawlMarkdownFiles(matches []string, maxErrors int) (pkg.Courses, int) {
 	if maxErrors < 0 {

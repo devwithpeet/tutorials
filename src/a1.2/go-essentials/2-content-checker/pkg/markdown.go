@@ -359,6 +359,10 @@ func extractRelatedVideo(content string) RelatedVideo {
 		return RelatedVideo{}
 	}
 
+	if minutes > 0 && badge != "" && strings.Index(content, "badge") < strings.Index(content, "time") {
+		issues = append(issues, "badge should be placed after time")
+	}
+
 	return RelatedVideo{
 		Badge:   badge,
 		Issues:  issues,

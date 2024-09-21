@@ -47,7 +47,8 @@ func TestCourses_Add(t *testing.T) {
 							Title: "bar",
 							Pages: Pages{
 								{
-									FilePath: "baz.md",
+									FilePath: "foo/bar/baz.md",
+									Title:    "baz.md",
 									Content:  stubContent,
 								},
 							},
@@ -145,7 +146,8 @@ func TestCourses_Add(t *testing.T) {
 							Title: "bar",
 							Pages: Pages{
 								{
-									FilePath: "baz.md",
+									FilePath: "foo/bar/baz.md",
+									Title:    "baz.md",
 									Content:  stubContent,
 								},
 							},
@@ -201,7 +203,8 @@ func TestCourses_Add(t *testing.T) {
 							Title: "bar",
 							Pages: Pages{
 								{
-									FilePath: "baz.md",
+									FilePath: "foo/bar/baz.md",
+									Title:    "baz.md",
 									Content:  stubContent,
 								},
 							},
