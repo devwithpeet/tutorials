@@ -404,6 +404,33 @@ func (c Course) GetErrors() []string {
 	return issues
 }
 
+func (c Course) Stats() (int, int, int, int, int) {
+	var (
+		total, stub, incomplete, complete, errors int
+	)
+
+	for _, chapter := range c.Chapters {
+		for _, page := range chapter.Pages {
+			switch page.GetState() {
+			case Stub:
+				stub++
+			case Incomplete:
+				incomplete++
+			case Complete:
+				complete++
+			}
+
+			if len(page.GetIssues()) > 0 {
+				errors++
+			}
+		}
+
+		total += len(chapter.Pages)
+	}
+
+	return total, stub, incomplete, complete, errors
+}
+
 type Courses []Course
 
 func (c Courses) Add(filePath, courseFN, chapterFN, pageFN string, content Content) Courses {

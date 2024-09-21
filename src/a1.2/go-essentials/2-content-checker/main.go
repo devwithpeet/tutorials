@@ -15,6 +15,7 @@ type Command string
 const (
 	PrintCommand  Command = "print"
 	ErrorsCommand Command = "errors"
+	StatsCommand  Command = "stats"
 )
 
 func main() {
@@ -45,6 +46,9 @@ func main() {
 
 	case ErrorsCommand:
 		Errors(count, courses)
+
+	case StatsCommand:
+		Stats(courses)
 
 	default:
 		panic("unknown command: " + string(action))
@@ -123,12 +127,51 @@ func Print(count int, courses pkg.Courses) {
 func Errors(count int, courses pkg.Courses) {
 	fmt.Println("Processed", count, "markdown files")
 
+	errorsFound := false
+
 	for _, course := range courses {
 		errors := course.GetErrors()
 		if len(errors) == 0 {
 			continue
 		}
 
+		errorsFound = true
+
 		fmt.Println(strings.Join(errors, "\n"))
 	}
+
+	if errorsFound {
+		os.Exit(1)
+	}
+}
+
+func Stats(courses pkg.Courses) {
+	fmt.Println("Stats")
+
+	var total, totalStub, totalIncomplete, totalComplete, totalErrors int
+
+	for _, course := range courses {
+		courseAll, courseStub, courseIncomplete, courseComplete, courseErrors := course.Stats()
+
+		fmt.Println("Course:", course.Title)
+		fmt.Println("  Total:", courseAll)
+		fmt.Println("  Stub:", courseStub)
+		fmt.Println("  Incomplete:", courseIncomplete)
+		fmt.Println("  Complete:", courseComplete)
+		fmt.Println("  Errors:", courseErrors)
+		fmt.Println()
+
+		total += courseAll
+		totalStub += courseStub
+		totalIncomplete += courseIncomplete
+		totalComplete += courseComplete
+		totalErrors += courseErrors
+	}
+
+	fmt.Println("Total:", total)
+	fmt.Println("  Stub:", totalStub)
+	fmt.Println("  Incomplete:", totalIncomplete)
+	fmt.Println("  Complete:", totalComplete)
+	fmt.Println("  Errors:", totalErrors)
+
 }
