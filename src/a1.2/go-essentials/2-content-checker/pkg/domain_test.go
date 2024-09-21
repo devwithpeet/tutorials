@@ -47,7 +47,7 @@ func TestCourses_Add(t *testing.T) {
 							Title: "bar",
 							Pages: Pages{
 								{
-									Filename: "baz.md",
+									FilePath: "baz.md",
 									Content:  stubContent,
 								},
 							},
@@ -73,7 +73,7 @@ func TestCourses_Add(t *testing.T) {
 							Title: "bar",
 							Pages: Pages{
 								{
-									Filename: "baz0.md",
+									FilePath: "baz0.md",
 									Content:  stubContent,
 								},
 							},
@@ -89,11 +89,12 @@ func TestCourses_Add(t *testing.T) {
 							Title: "bar",
 							Pages: Pages{
 								{
-									Filename: "baz0.md",
+									FilePath: "baz0.md",
 									Content:  stubContent,
 								},
 								{
-									Filename: "baz.md",
+									FilePath: "foo/bar/baz.md",
+									Title:    "baz.md",
 									Content:  stubContent,
 								},
 							},
@@ -119,7 +120,7 @@ func TestCourses_Add(t *testing.T) {
 							Title: "bar0",
 							Pages: Pages{
 								{
-									Filename: "baz.md",
+									FilePath: "baz.md",
 									Content:  stubContent,
 								},
 							},
@@ -135,7 +136,7 @@ func TestCourses_Add(t *testing.T) {
 							Title: "bar0",
 							Pages: Pages{
 								{
-									Filename: "baz.md",
+									FilePath: "baz.md",
 									Content:  stubContent,
 								},
 							},
@@ -144,7 +145,7 @@ func TestCourses_Add(t *testing.T) {
 							Title: "bar",
 							Pages: Pages{
 								{
-									Filename: "baz.md",
+									FilePath: "baz.md",
 									Content:  stubContent,
 								},
 							},
@@ -170,7 +171,7 @@ func TestCourses_Add(t *testing.T) {
 							Title: "bar",
 							Pages: Pages{
 								{
-									Filename: "baz.md",
+									FilePath: "baz.md",
 									Content:  stubContent,
 								},
 							},
@@ -186,7 +187,7 @@ func TestCourses_Add(t *testing.T) {
 							Title: "bar",
 							Pages: Pages{
 								{
-									Filename: "baz.md",
+									FilePath: "baz.md",
 									Content:  stubContent,
 								},
 							},
@@ -200,7 +201,7 @@ func TestCourses_Add(t *testing.T) {
 							Title: "bar",
 							Pages: Pages{
 								{
-									Filename: "baz.md",
+									FilePath: "baz.md",
 									Content:  stubContent,
 								},
 							},
@@ -212,8 +213,11 @@ func TestCourses_Add(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// execute
 			got := tt.c.Add(tt.args.filePath, tt.args.courseFN, tt.args.chapterFN, tt.args.pageFN, tt.args.content)
-			assert.Equalf(t, tt.want, got, "Add(%v, %v, %v, %v)", tt.args.courseFN, tt.args.chapterFN, tt.args.pageFN, tt.args.content)
+
+			// verify
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

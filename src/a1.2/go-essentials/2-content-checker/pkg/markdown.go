@@ -205,24 +205,26 @@ func ExtractMainVideo(content string) MainVideo {
 	return mainVideo
 }
 
-var regexH3 = regexp.MustCompile(`\n### .*\n`)
+var regexSubHeader = regexp.MustCompile(`\n####?#? .*\n`)
 
 func ExtractRelatedVideos(content string) RelatedVideos {
 	if strings.TrimSpace(content) == "" {
 		return nil
 	}
 
-	h3Sections := regexH3.Split("\n"+content, -1)
+	sections := regexSubHeader.Split("\n"+content, -1)
 
-	relatedVideos := make(RelatedVideos, 0, len(h3Sections))
-	for _, h3Section := range h3Sections {
-		if strings.TrimSpace(h3Section) == "" {
+	relatedVideos := make(RelatedVideos, 0, len(sections))
+	for _, section := range sections {
+		if strings.TrimSpace(section) == "" {
 			continue
 		}
 
-		relatedVideo := extractRelatedVideo(h3Section)
+		relatedVideo := extractRelatedVideo(section)
 
-		relatedVideos = append(relatedVideos, relatedVideo)
+		if relatedVideo.Valid {
+			relatedVideos = append(relatedVideos, relatedVideo)
+		}
 	}
 
 	return relatedVideos
@@ -292,10 +294,11 @@ func extractBadges(content string) (Badge, bool, []string) {
 	return badges[0], noEmbed, issues
 }
 
-func extractYoutube(content string, noEmbed bool) []string {
+func extractYoutube(content string, noEmbed bool) (int, []string) {
 	var issues []string
 
 	youtubeMatches := regexYoutube.FindAllStringSubmatch(content, -1)
+
 	switch len(youtubeMatches) {
 	case 0:
 		if !noEmbed {
@@ -309,7 +312,7 @@ func extractYoutube(content string, noEmbed bool) []string {
 		issues = append(issues, "multiple youtube shortcodes found")
 	}
 
-	return issues
+	return len(youtubeMatches), issues
 }
 
 func extractRelatedVideo(content string) RelatedVideo {
@@ -325,13 +328,18 @@ func extractRelatedVideo(content string) RelatedVideo {
 	badge, noEmbed, badgeIssues := extractBadges(content)
 	issues = append(issues, badgeIssues...)
 
-	youtubeIssues := extractYoutube(content, noEmbed)
-	issues = append(issues, youtubeIssues...)
+	ytCount, ytIssues := extractYoutube(content, noEmbed)
+	issues = append(issues, ytIssues...)
+
+	if ytCount == 0 && !noEmbed && badge == "" && minutes == 0 {
+		return RelatedVideo{}
+	}
 
 	return RelatedVideo{
 		Badge:   badge,
 		Issues:  issues,
 		Minutes: minutes,
+		Valid:   true,
 	}
 }
 

@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 )
 
@@ -63,6 +64,7 @@ type RelatedVideo struct {
 	Badge   Badge
 	Issues  []string
 	Minutes int
+	Valid   bool
 }
 
 type RelatedVideos []RelatedVideo
@@ -194,8 +196,9 @@ func (c Content) GetIssues(filePath string) []string {
 
 	_, isDefaultBody := c.Body.(*DefaultBody)
 	if isDefaultBody {
-		if !strings.HasPrefix(filePath, c.Weight) {
-			issues = append(issues, "title is not prefixed with weight: '"+filePath+"', prefix: '"+c.Weight+"'")
+		filename := filepath.Base(filePath)
+		if !strings.HasPrefix(filename, c.Weight) {
+			issues = append(issues, "file name is not prefixed with weight: '"+filename+"', prefix: '"+c.Weight+"'")
 		}
 	}
 
@@ -203,13 +206,13 @@ func (c Content) GetIssues(filePath string) []string {
 }
 
 type Page struct {
-	Filename string
+	FilePath string
 	Title    string
 	Content  Content
 }
 
 func (p Page) GetIssues() []string {
-	issues := p.Content.GetIssues(p.Filename)
+	issues := p.Content.GetIssues(p.FilePath)
 
 	return issues
 }
@@ -218,7 +221,7 @@ func (p Page) GetErrors() []string {
 	var errors []string
 
 	for _, issue := range p.GetIssues() {
-		errors = append(errors, fmt.Sprintf("%s - %s", p.Filename, issue))
+		errors = append(errors, fmt.Sprintf("%s - %s", p.FilePath, issue))
 	}
 
 	return errors
@@ -245,7 +248,7 @@ func (p Page) String() string {
 		color = cliRed
 	}
 
-	result := fmt.Sprintln("    ", color, p.Filename, "-", p.Content.State, cliReset)
+	result := fmt.Sprintln("    ", color, p.FilePath, "-", p.Content.State, cliReset)
 
 	for _, issue := range issues {
 		result += fmt.Sprintln("        - ", issue)
@@ -257,7 +260,7 @@ func (p Page) String() string {
 type Pages []Page
 
 func (p Pages) Add(filePath, pageFN string, content Content) Pages {
-	return append(p, Page{Filename: filePath, Title: pageFN, Content: content})
+	return append(p, Page{FilePath: filePath, Title: pageFN, Content: content})
 }
 
 type Chapter struct {
@@ -336,7 +339,7 @@ func (c Chapters) Add(filePath, chapterFN, pageFN string, content Content) Chapt
 		}
 	}
 
-	return append(c, &Chapter{Title: chapterFN, Pages: Pages{{Filename: pageFN, Content: content}}})
+	return append(c, &Chapter{Title: chapterFN, Pages: Pages{{FilePath: pageFN, Content: content}}})
 }
 
 type Course struct {
@@ -380,5 +383,5 @@ func (c Courses) Add(filePath, courseFN, chapterFN, pageFN string, content Conte
 		}
 	}
 
-	return append(c, Course{Title: courseFN, Chapters: Chapters{{Title: chapterFN, Pages: Pages{{Filename: pageFN, Content: content}}}}})
+	return append(c, Course{Title: courseFN, Chapters: Chapters{{Title: chapterFN, Pages: Pages{{FilePath: pageFN, Content: content}}}}})
 }

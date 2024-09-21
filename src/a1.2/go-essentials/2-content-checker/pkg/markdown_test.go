@@ -196,17 +196,7 @@ Practice
 					HasTopics:       true,
 					HasPractice:     true,
 					HasRelatedLinks: true,
-					RelatedVideos: RelatedVideos{
-						{
-							Badge: "",
-							Issues: []string{
-								"missing time shortcode",
-								"missing badge shortcode",
-								"missing youtube shortcode",
-							},
-							Minutes: 0,
-						},
-					},
+					RelatedVideos:   RelatedVideos{},
 				},
 			},
 		},
@@ -259,17 +249,7 @@ Practice
 					HasTopics:       true,
 					HasPractice:     true,
 					HasRelatedLinks: true,
-					RelatedVideos: RelatedVideos{
-						{
-							Badge: "",
-							Issues: []string{
-								"missing time shortcode",
-								"missing badge shortcode",
-								"missing youtube shortcode",
-							},
-							Minutes: 0,
-						},
-					},
+					RelatedVideos:   RelatedVideos{},
 				},
 			},
 		},
@@ -312,17 +292,7 @@ state = "complete"
 					HasTopics:       true,
 					HasPractice:     false,
 					HasRelatedLinks: true,
-					RelatedVideos: RelatedVideos{
-						{
-							Badge: "",
-							Issues: []string{
-								"missing time shortcode",
-								"missing badge shortcode",
-								"missing youtube shortcode",
-							},
-							Minutes: 0,
-						},
-					},
+					RelatedVideos:   RelatedVideos{},
 				},
 			},
 		},
@@ -370,17 +340,7 @@ weight = 9
 					HasTopics:       true,
 					HasPractice:     true,
 					HasRelatedLinks: true,
-					RelatedVideos: RelatedVideos{
-						{
-							Badge: "",
-							Issues: []string{
-								"missing time shortcode",
-								"missing badge shortcode",
-								"missing youtube shortcode",
-							},
-							Minutes: 0,
-						},
-					},
+					RelatedVideos:   RelatedVideos{},
 				},
 			},
 		},
@@ -560,17 +520,19 @@ func TestExtractRelatedVideos(t *testing.T) {
 		{
 			name: "no badges lead to issues",
 			args: args{
-				content: "### This is a title\n\nfoo\n",
+				content: `### This is a title\n\nfoo\n
+{{< time 5 >}}
+
+{{< youtube abc >}}`,
 			},
 			want: RelatedVideos{
 				{
 					Badge: "",
 					Issues: []string{
-						"missing time shortcode",
 						"missing badge shortcode",
-						"missing youtube shortcode",
 					},
-					Minutes: 0,
+					Minutes: 5,
+					Valid:   true,
 				},
 			},
 		},
@@ -594,6 +556,7 @@ func TestExtractRelatedVideos(t *testing.T) {
 						"multiple youtube shortcodes found",
 					},
 					Minutes: 5,
+					Valid:   true,
 				},
 			},
 		},
@@ -628,18 +591,10 @@ foo
 				{
 					Badge: "",
 					Issues: []string{
-						"missing time shortcode",
-						"missing badge shortcode",
-						"missing youtube shortcode",
-					},
-					Minutes: 0,
-				},
-				{
-					Badge: "",
-					Issues: []string{
 						"missing badge shortcode",
 					},
 					Minutes: 5,
+					Valid:   true,
 				},
 				{
 					Badge: "alternative",
@@ -647,6 +602,7 @@ foo
 						"unexpected badge shortcode found: extra",
 					},
 					Minutes: 123,
+					Valid:   true,
 				},
 				{
 					Badge: "extra",
@@ -654,6 +610,7 @@ foo
 						"multiple youtube shortcodes found",
 					},
 					Minutes: 17,
+					Valid:   true,
 				},
 			},
 		},
@@ -672,6 +629,7 @@ foo
 					Badge:   "extra",
 					Issues:  nil,
 					Minutes: 17,
+					Valid:   true,
 				},
 			},
 		},
@@ -691,6 +649,7 @@ foo
 					Badge:   "extra",
 					Issues:  nil,
 					Minutes: 17,
+					Valid:   true,
 				},
 			},
 		},
@@ -707,6 +666,7 @@ foo
 					Badge:   "extra",
 					Issues:  nil,
 					Minutes: 17,
+					Valid:   true,
 				},
 			},
 		},
@@ -725,6 +685,167 @@ foo
 					Badge:   "extra",
 					Issues:  []string{"unexpected youtube shortcode together with no-embed badge"},
 					Minutes: 17,
+					Valid:   true,
+				},
+			},
+		},
+		{
+			name: "complex video section",
+			args: args{
+				content: `### The Analytical Engine (Charles Babbage, Ada Lovelace)
+
+#### The greatest machine that never was - John Graham-Cumming - TED-Ed
+
+{{< time 12 >}} {{<badge-extra>}}
+
+{{< youtube FlfChYGv3Z4 >}}
+
+#### Babbage's Analytical Engine - Computerphile
+
+{{< time 14 >}} {{<badge-extra>}}
+
+{{< youtube 5rtKoKFGFSM >}}
+
+#### Ada Lovelace: The First Computer Programmer - Biographics
+
+{{< time 21 >}} {{<badge-extra>}}
+
+{{< youtube id=IZptxisyVqQ start=60 >}}
+
+---
+
+### Harvard Mark I
+
+#### Supercomputer Where It All Started - Harvard Mark 1 - Major Hardware
+
+{{< time 6 >}} {{<badge-extra>}}
+
+{{< youtube cd2DV-AoCk4 >}}
+
+#### Harvard Mark I, 2022 - CS50
+
+{{< time 3 >}} {{<badge-extra>}}
+
+{{< youtube 7l8W96I7_ew >}}
+
+---
+
+### Enigma, Bombe (Alan Turing)
+
+#### How did the Enigma Machine work? - Jared Owen
+
+{{< time 20 >}} {{<badge-extra>}}
+
+{{< youtube ybkkiGtJmkM >}}
+
+
+### Lorenz and Colossus (Tommy Flowers, Bill Tutte)
+
+#### Why the Toughest Code to Break in WW2 WASN'T Enigma - The Story of the Lorenz Cipher
+
+{{< time 11 >}} {{<badge-extra>}}
+
+{{< youtube RCWgOaDOzpY >}}
+
+#### Colossus & Bletchley Park - Computerphile
+
+{{< time 9 >}} {{<badge-extra>}}
+
+{{< youtube 9HH-asvLAj4 >}}
+
+#### Colossus - The Greatest Secret in the History of Computing - The Centre for Computing History
+
+{{< time 60 >}} {{<badge-extra>}}
+
+This is not only about Colossus, but provides a lot of context, including basic cryptographic problems of the time. It's
+probably my favorite video recommended on this page.
+
+{{< youtube g2tMcMQqSbA >}}
+
+### Why Build Colossus? (Bill Tutte) - Computerphile
+
+{{< time 8 >}} {{<badge-extra>}}
+
+{{< youtube 1f82-aTYNb8 >}}
+
+
+---
+
+### Transistors and ENIAC (John Mauchly, J. Presper Eckert)
+
+#### Transistors - The Invention That Changed The World - Real Engineering
+
+{{< time 8 >}} {{<badge-extra>}}
+
+{{< youtube OwS9aTE2Go4 >}}
+`,
+			},
+			want: RelatedVideos{
+				{
+					Badge:   "extra",
+					Issues:  nil,
+					Minutes: 12,
+					Valid:   true,
+				},
+				{
+					Badge:   "extra",
+					Issues:  nil,
+					Minutes: 14,
+					Valid:   true,
+				},
+				{
+					Badge:   "extra",
+					Issues:  nil,
+					Minutes: 21,
+					Valid:   true,
+				},
+				{
+					Badge:   "extra",
+					Issues:  nil,
+					Minutes: 6,
+					Valid:   true,
+				},
+				{
+					Badge:   "extra",
+					Issues:  nil,
+					Minutes: 3,
+					Valid:   true,
+				},
+				{
+					Badge:   "extra",
+					Issues:  nil,
+					Minutes: 20,
+					Valid:   true,
+				},
+				{
+					Badge:   "extra",
+					Issues:  nil,
+					Minutes: 11,
+					Valid:   true,
+				},
+				{
+					Badge:   "extra",
+					Issues:  nil,
+					Minutes: 9,
+					Valid:   true,
+				},
+				{
+					Badge:   "extra",
+					Issues:  nil,
+					Minutes: 60,
+					Valid:   true,
+				},
+				{
+					Badge:   "extra",
+					Issues:  nil,
+					Minutes: 8,
+					Valid:   true,
+				},
+				{
+					Badge:   "extra",
+					Issues:  nil,
+					Minutes: 8,
+					Valid:   true,
 				},
 			},
 		},
