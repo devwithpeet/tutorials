@@ -97,6 +97,32 @@ type DefaultBody struct {
 	RelatedVideos      RelatedVideos
 	HasRelatedLinks    bool
 	UsefulWithoutVideo bool
+	Titles             []string
+}
+
+var defaultBodySectionMap = map[string]int{
+	sectionMainVideo:       0,
+	sectionSummary:         1,
+	sectionTopics:          2,
+	sectionRelatedVideos:   3,
+	sectionRelatedArticles: 4,
+	sectionRelatedLinks:    5,
+	sectionExercises:       6,
+}
+
+func isOrderedCorrectly(goldenMap map[string]int, givenSlice []string) (string, bool) {
+	lastIndex := -1
+	for _, item := range givenSlice {
+		if index, exists := goldenMap[item]; exists {
+			if index < lastIndex {
+				return item, false
+			}
+
+			lastIndex = index
+		}
+	}
+
+	return "", true
 }
 
 func (db DefaultBody) GetIssues(state State) []string {
@@ -115,6 +141,10 @@ func (db DefaultBody) GetIssues(state State) []string {
 
 	if state != db.CalculateState() {
 		issues = append(issues, fmt.Sprintf("state mismatch. got: %s, want: %s", state, db.CalculateState()))
+	}
+
+	if item, ok := isOrderedCorrectly(defaultBodySectionMap, db.Titles); !ok {
+		issues = append(issues, "sections are not in the correct order, first out of order: "+item)
 	}
 
 	return issues

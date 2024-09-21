@@ -9,13 +9,19 @@ import (
 )
 
 const (
-	sectionMainVideo             = "main video"
-	sectionSummary               = "summary"
-	sectionTopics                = "topics"
-	sectionRelatedVideos         = "related videos"
-	sectionRelatedLinks          = "related links"
-	sectionExercises             = "exercises"
-	sectionEpisodes              = "episodes"
+	// default
+	sectionMainVideo       = "main video"
+	sectionSummary         = "summary"
+	sectionTopics          = "topics"
+	sectionRelatedVideos   = "related videos"
+	sectionRelatedArticles = "related articles"
+	sectionRelatedLinks    = "related links"
+	sectionExercises       = "exercises"
+
+	// index
+	sectionEpisodes = "episodes"
+
+	// practice
 	sectionDescription           = "description"
 	sectionRecommendedChallenges = "recommended challenges"
 	sectionAdditionalChallenges  = "additional challenges"
@@ -38,13 +44,11 @@ func ParseMarkdown(rawContent string) (Content, error) {
 
 	sections := extractSection(body)
 
-	_, hasEpisodes := sections[sectionEpisodes]
-	if hasEpisodes {
+	if sections.Has(sectionEpisodes) {
 		return NewIndexContent(header, sections), nil
 	}
 
-	_, hasDescription := sections[sectionDescription]
-	if hasDescription {
+	if sections.Has(sectionDescription) {
 		return NewPracticeContent(header, sections), nil
 	}
 
@@ -62,7 +66,7 @@ func splitMarkdown(in string) (string, string, error) {
 	return "", "", errors.New("could not split markdown")
 }
 
-func NewIndexContent(header string, sections map[string]string) Content {
+func NewIndexContent(header string, sections Sections) Content {
 	title := getHeaderValue(header, "title", "")
 	body := sectionsToIndexBody(sections)
 	state := State(getHeaderValue(header, "state", string(Unknown)))
@@ -74,7 +78,7 @@ func NewIndexContent(header string, sections map[string]string) Content {
 	}
 }
 
-func NewPracticeContent(header string, sections map[string]string) Content {
+func NewPracticeContent(header string, sections Sections) Content {
 	title := getHeaderValue(header, "title", "")
 	state := State(getHeaderValue(header, "state", string(Unknown)))
 	slug := getHeaderValue(header, "slug", "")
@@ -90,7 +94,7 @@ func NewPracticeContent(header string, sections map[string]string) Content {
 	}
 }
 
-func NewDefaultContent(header string, sections map[string]string) Content {
+func NewDefaultContent(header string, sections Sections) Content {
 	title := getHeaderValue(header, "title", "")
 	state := NewState(getHeaderValue(header, "state", string(Unknown)))
 	slug := getHeaderValue(header, "slug", "")
@@ -148,8 +152,44 @@ func getHeaderValues(header, key string, defaultValue []string) []string {
 	return defaultValue
 }
 
-func extractSection(body string) map[string]string {
-	sections := make(map[string]string)
+type Section struct {
+	Title   string
+	Content string
+}
+
+type Sections []Section
+
+func (s Sections) Has(title string) bool {
+	for _, section := range s {
+		if section.Title == title {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (s Sections) Get(title string) string {
+	for _, section := range s {
+		if section.Title == title {
+			return section.Content
+		}
+	}
+
+	return ""
+}
+
+func (s Sections) Titles() []string {
+	keys := make([]string, 0, len(s))
+	for _, section := range s {
+		keys = append(keys, section.Title)
+	}
+
+	return keys
+}
+
+func extractSection(body string) Sections {
+	var sections Sections
 
 	currentSection := "root"
 	sectionStart := 0
@@ -159,7 +199,7 @@ func extractSection(body string) map[string]string {
 		if len(row) >= 3 && row[:3] == "## " {
 			content := strings.Trim(strings.Join(rows[sectionStart:i], EOL), " \t\n")
 			if len(content) > 0 {
-				sections[currentSection] = content
+				sections = append(sections, Section{Title: currentSection, Content: content})
 			}
 
 			sectionStart = i + 1
@@ -172,7 +212,7 @@ func extractSection(body string) map[string]string {
 		if i > sectionStart && len(row) >= 3 && row[:3] == "---" {
 			content := strings.Trim(strings.Join(rows[sectionStart:i-1], EOL), " \t\n")
 			if len(content) > 0 {
-				sections[currentSection] = content
+				sections = append(sections, Section{Title: currentSection, Content: content})
 			}
 
 			sectionStart = i + 1
@@ -186,7 +226,7 @@ func extractSection(body string) map[string]string {
 	if len(rows) > sectionStart {
 		content := strings.Trim(strings.Join(rows[sectionStart:], EOL), " \t\n")
 		if len(content) > 0 {
-			sections[currentSection] = content
+			sections = append(sections, Section{Title: currentSection, Content: content})
 		}
 	}
 
@@ -376,16 +416,16 @@ const (
 	tagNoExercise         = "no-exercise"
 )
 
-func sectionsToDefaultBody(sections map[string]string, tags []string) DefaultBody {
-	_, hasSummary := sections[sectionSummary]
-	_, hasTopics := sections[sectionTopics]
-	_, hasRelatedLinks := sections[sectionRelatedLinks]
-	exercises, hasExercises := sections[sectionExercises]
+func sectionsToDefaultBody(sections Sections, tags []string) DefaultBody {
+	hasSummary := sections.Has(sectionSummary)
+	hasTopics := sections.Has(sectionTopics)
+	hasRelatedLinks := sections.Has(sectionRelatedLinks)
+	hasExercises := sections.Has(sectionExercises)
 
-	mainVideo := ExtractMainVideo(sections[sectionMainVideo])
-	relatedVideos := ExtractRelatedVideos(sections[sectionRelatedVideos])
+	mainVideo := ExtractMainVideo(sections.Get(sectionMainVideo))
+	relatedVideos := ExtractRelatedVideos(sections.Get(sectionRelatedVideos))
 
-	if hasExercises && strings.TrimSpace(exercises) == "" {
+	if hasExercises && strings.TrimSpace(sections.Get(sectionExercises)) == "" {
 		hasExercises = false
 	}
 
@@ -407,26 +447,21 @@ func sectionsToDefaultBody(sections map[string]string, tags []string) DefaultBod
 		HasRelatedLinks:    hasRelatedLinks,
 		HasExercises:       hasExercises,
 		UsefulWithoutVideo: usefulWithoutVideo,
+		Titles:             sections.Titles(),
 	}
 }
 
-func sectionsToIndexBody(sections map[string]string) *IndexBody {
-	_, hasEpisodes := sections[sectionEpisodes]
-
+func sectionsToIndexBody(sections Sections) *IndexBody {
 	return &IndexBody{
-		HasEpisodes:   hasEpisodes,
+		HasEpisodes:   sections.Has(sectionEpisodes),
 		CompleteState: Incomplete,
 	}
 }
 
-func sectionsToPracticeBody(sections map[string]string) *PracticeBody {
-	_, hasDescription := sections[sectionDescription]
-	_, hasRecommendedChallenges := sections[sectionRecommendedChallenges]
-	_, hasAdditionalChallenges := sections[sectionAdditionalChallenges]
-
+func sectionsToPracticeBody(sections Sections) *PracticeBody {
 	return &PracticeBody{
-		HasDescription:           hasDescription,
-		HasRecommendedChallenges: hasRecommendedChallenges,
-		HasAdditionalChallenges:  hasAdditionalChallenges,
+		HasDescription:           sections.Has(sectionDescription),
+		HasRecommendedChallenges: sections.Has(sectionRecommendedChallenges),
+		HasAdditionalChallenges:  sections.Has(sectionAdditionalChallenges),
 	}
 }
