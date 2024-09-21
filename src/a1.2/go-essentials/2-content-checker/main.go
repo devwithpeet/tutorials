@@ -6,20 +6,18 @@ import (
 	"path/filepath"
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
-
-	"github.com/devwithpeet/tutorials/src/a1.2/1-go-essentials/2-content-checker/pkg"
+	"github.com/devwithpeet/tutorials/src/a1.2/go-essentials/2-content-checker/pkg"
 )
 
 func main() {
-	// editor to use when opening a markdown file
-	editor := "open"
+	root := "."
 	if len(os.Args) > 1 {
-		editor = os.Args[1]
+		root = os.Args[1]
 	}
 
 	// collect markdown files
-	matches, err := filepath.Glob("./content/**/**/*.md")
+	pattern := filepath.Join(root, "content") + "/**/**/*.md"
+	matches, err := filepath.Glob(pattern)
 	if err != nil {
 		fmt.Println("Error fetching markdown files:", err)
 		os.Exit(1)
@@ -28,31 +26,31 @@ func main() {
 	// fetch markdown files
 	courses, count := CrawlMarkdownFiles(matches)
 
-	// convert the fetched raw data into rows for table display
-	rows := courses.ToRows(count)
-
-	// start CLI UI
-	m := pkg.NewModel(rows, editor)
-	if _, err := tea.NewProgram(m).Run(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
-	}
+	Print(count, courses)
 }
+
+const maxErrors = 3
 
 func CrawlMarkdownFiles(matches []string) (pkg.Courses, int) {
 	result := make(pkg.Courses, 0, len(matches))
 
+	var count, errCount int
+
 	for _, filePath := range matches {
+		if errCount >= maxErrors {
+			break
+		}
+
 		parts := strings.Split(filePath, "/")
 
-		if len(parts) < 4 {
+		if len(parts) < 3 {
 			fmt.Println("Skipping:", filePath)
 			continue
 		}
 
-		course := parts[1]
-		chapter := parts[2]
-		page := parts[3]
+		course := parts[len(parts)-3]
+		chapter := parts[len(parts)-2]
+		page := parts[len(parts)-1]
 
 		rawContent, err := os.ReadFile(filePath)
 		if err != nil {
@@ -60,9 +58,22 @@ func CrawlMarkdownFiles(matches []string) (pkg.Courses, int) {
 		}
 
 		content := pkg.ParseMarkdown(string(rawContent), filePath)
-
 		result = result.Add(course, chapter, page, content)
+
+		if len(content.GetIssues()) > 0 {
+			errCount++
+		}
+
+		count++
 	}
 
-	return result, len(matches)
+	return result, count
+}
+
+func Print(count int, courses pkg.Courses) {
+	fmt.Println("Processed", count, "markdown files")
+
+	for _, course := range courses {
+		fmt.Print(course.String())
+	}
 }
