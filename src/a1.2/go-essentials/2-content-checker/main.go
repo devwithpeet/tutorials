@@ -9,26 +9,51 @@ import (
 	"github.com/devwithpeet/tutorials/src/a1.2/go-essentials/2-content-checker/pkg"
 )
 
+type Command string
+
+const (
+	PrintCommand  Command = "print"
+	ErrorsCommand Command = "errors"
+)
+
 func main() {
 	root := "."
 	if len(os.Args) > 1 {
 		root = os.Args[1]
 	}
 
+	action := PrintCommand
+	if len(os.Args) > 2 {
+		action = Command(os.Args[2])
+	}
+
 	// collect markdown files
-	pattern := filepath.Join(root, "content") + "/**/**/*.md"
-	matches, err := filepath.Glob(pattern)
+	files, err := findFiles(root)
 	if err != nil {
-		fmt.Println("Error fetching markdown files:", err)
-		os.Exit(1)
+		panic("cannot find files in root: " + root + ", error: " + err.Error())
 	}
 
 	// fetch markdown files
-	courses, count := CrawlMarkdownFiles(matches)
+	courses, count := CrawlMarkdownFiles(files)
 
 	Prepare(courses)
 
-	Print(count, courses)
+	switch action {
+	case PrintCommand:
+		Print(count, courses)
+
+	case ErrorsCommand:
+		Errors(count, courses)
+
+	default:
+		panic("unknown command: " + string(action))
+	}
+}
+
+func findFiles(root string) ([]string, error) {
+	pattern := filepath.Join(root, "content") + "/**/**/*.md"
+
+	return filepath.Glob(pattern)
 }
 
 const maxErrors = 3
@@ -59,10 +84,14 @@ func CrawlMarkdownFiles(matches []string) (pkg.Courses, int) {
 			panic("cannot open file: " + filePath)
 		}
 
-		content := pkg.ParseMarkdown(string(rawContent), filePath)
-		result = result.Add(course, chapter, page, content)
+		content, err := pkg.ParseMarkdown(string(rawContent))
+		if err != nil {
+			panic("cannot parse markdown: " + filePath + ", err: " + err.Error())
+		}
 
-		if len(content.GetIssues()) > 0 {
+		result = result.Add(filePath, course, chapter, page, content)
+
+		if len(content.GetIssues(filePath)) > 0 {
 			errCount++
 		}
 
@@ -83,5 +112,13 @@ func Print(count int, courses pkg.Courses) {
 
 	for _, course := range courses {
 		fmt.Print(course.String())
+	}
+}
+
+func Errors(count int, courses pkg.Courses) {
+	fmt.Println("Processed", count, "markdown files")
+
+	for _, course := range courses {
+		fmt.Println(strings.Join(course.GetErrors(), "\n"))
 	}
 }

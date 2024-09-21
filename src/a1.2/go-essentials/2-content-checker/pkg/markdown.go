@@ -23,12 +23,9 @@ const (
 
 const markdownHeaderLength = 3
 
-func ParseMarkdown(rawContent, filePath string) Content {
+func ParseMarkdown(rawContent string) (Content, error) {
 	if len(rawContent) < markdownHeaderLength*2 {
-		return Content{
-			FilePath: filePath,
-			State:    Unknown,
-		}
+		return Content{State: Unknown}, nil
 	}
 
 	// Convert DOS/Windows line endings (\r\n) into Linux/Unix line endings
@@ -36,21 +33,22 @@ func ParseMarkdown(rawContent, filePath string) Content {
 
 	header, body, err := splitMarkdown(strContent)
 	if err != nil {
-		panic(fmt.Errorf("markdown header could not be extracted, file: %s, err: %w", filePath, err))
+		return Content{}, fmt.Errorf("markdown header could not be extracted, err: %w", err)
 	}
 
 	sections := extractSection(body)
 
-	if strings.Contains(filePath, "_index.md") {
-		return NewIndexContent(header, sections, filePath)
+	_, hasEpisodes := sections[sectionEpisodes]
+	if hasEpisodes {
+		return NewIndexContent(header, sections), nil
 	}
 
 	_, hasDescription := sections[sectionDescription]
 	if hasDescription {
-		return NewPracticeContent(header, sections, filePath)
+		return NewPracticeContent(header, sections), nil
 	}
 
-	return NewDefaultContent(header, sections, filePath)
+	return NewDefaultContent(header, sections), nil
 }
 
 func splitMarkdown(in string) (string, string, error) {
@@ -64,37 +62,35 @@ func splitMarkdown(in string) (string, string, error) {
 	return "", "", errors.New("could not split markdown")
 }
 
-func NewIndexContent(header string, sections map[string]string, filePath string) Content {
-	title := getHeaderValue(header, "title", filePath)
+func NewIndexContent(header string, sections map[string]string) Content {
+	title := getHeaderValue(header, "title", "")
 	body := sectionsToIndexBody(sections)
 	state := State(getHeaderValue(header, "state", string(Unknown)))
 
 	return Content{
-		Title:    title,
-		State:    state,
-		Body:     body,
-		FilePath: filePath,
+		Title: title,
+		State: state,
+		Body:  body,
 	}
 }
 
-func NewPracticeContent(header string, sections map[string]string, filePath string) Content {
-	title := getHeaderValue(header, "title", filePath)
+func NewPracticeContent(header string, sections map[string]string) Content {
+	title := getHeaderValue(header, "title", "")
 	state := State(getHeaderValue(header, "state", string(Unknown)))
 	slug := getHeaderValue(header, "slug", "")
 	weight := getHeaderValue(header, "weight", "")
 	body := sectionsToPracticeBody(sections)
 
 	return Content{
-		Title:    title,
-		State:    state,
-		Body:     body,
-		FilePath: filePath,
-		Slug:     slug,
-		Weight:   weight,
+		Title:  title,
+		State:  state,
+		Body:   body,
+		Slug:   slug,
+		Weight: weight,
 	}
 }
 
-func NewDefaultContent(header string, sections map[string]string, filePath string) Content {
+func NewDefaultContent(header string, sections map[string]string) Content {
 	title := getHeaderValue(header, "title", "")
 	state := NewState(getHeaderValue(header, "state", string(Unknown)))
 	slug := getHeaderValue(header, "slug", "")
@@ -102,12 +98,11 @@ func NewDefaultContent(header string, sections map[string]string, filePath strin
 	defaultBody := sectionsToDefaultBody(sections)
 
 	return Content{
-		Title:    title,
-		State:    state,
-		Body:     defaultBody,
-		FilePath: filePath,
-		Slug:     slug,
-		Weight:   weight,
+		Title:  title,
+		State:  state,
+		Body:   defaultBody,
+		Slug:   slug,
+		Weight: weight,
 	}
 }
 

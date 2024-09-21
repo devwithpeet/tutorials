@@ -182,21 +182,20 @@ type Body interface {
 }
 
 type Content struct {
-	Title    string
-	State    State
-	Body     Body
-	FilePath string
-	Slug     string
-	Weight   string
+	Title  string
+	State  State
+	Body   Body
+	Slug   string
+	Weight string
 }
 
-func (c Content) GetIssues() []string {
+func (c Content) GetIssues(filePath string) []string {
 	issues := c.Body.GetIssues(c.State)
 
 	_, isDefaultBody := c.Body.(*DefaultBody)
 	if isDefaultBody {
-		if !strings.HasPrefix(c.FilePath, c.Weight) {
-			issues = append(issues, "title is not prefixed with weight: '"+c.FilePath+"', prefix: '"+c.Weight+"'")
+		if !strings.HasPrefix(filePath, c.Weight) {
+			issues = append(issues, "title is not prefixed with weight: '"+filePath+"', prefix: '"+c.Weight+"'")
 		}
 	}
 
@@ -205,13 +204,24 @@ func (c Content) GetIssues() []string {
 
 type Page struct {
 	Filename string
+	Title    string
 	Content  Content
 }
 
 func (p Page) GetIssues() []string {
-	issues := p.Content.GetIssues()
+	issues := p.Content.GetIssues(p.Filename)
 
 	return issues
+}
+
+func (p Page) GetErrors() []string {
+	var errors []string
+
+	for _, issue := range p.GetIssues() {
+		errors = append(errors, fmt.Sprintf("%s - %s", p.Filename, issue))
+	}
+
+	return errors
 }
 
 func (p Page) GetState() State {
@@ -246,8 +256,8 @@ func (p Page) String() string {
 
 type Pages []Page
 
-func (p Pages) Add(pageFN string, content Content) Pages {
-	return append(p, Page{Filename: pageFN, Content: content})
+func (p Pages) Add(filePath, pageFN string, content Content) Pages {
+	return append(p, Page{Filename: filePath, Title: pageFN, Content: content})
 }
 
 type Chapter struct {
@@ -306,12 +316,22 @@ func (c *Chapter) String() string {
 	return result
 }
 
+func (c *Chapter) GetErrors() []string {
+	var errors []string
+
+	for _, page := range c.Pages {
+		errors = append(errors, page.GetErrors()...)
+	}
+
+	return errors
+}
+
 type Chapters []*Chapter
 
-func (c Chapters) Add(chapterFN, pageFN string, content Content) Chapters {
+func (c Chapters) Add(filePath, chapterFN, pageFN string, content Content) Chapters {
 	for i, chapter := range c {
 		if chapter.Title == chapterFN {
-			c[i].Pages = c[i].Pages.Add(pageFN, content)
+			c[i].Pages = c[i].Pages.Add(filePath, pageFN, content)
 			return c
 		}
 	}
@@ -340,12 +360,22 @@ func (c Course) String() string {
 	return result
 }
 
+func (c Course) GetErrors() []string {
+	var issues []string
+
+	for _, chapter := range c.Chapters {
+		issues = append(issues, chapter.GetErrors()...)
+	}
+
+	return issues
+}
+
 type Courses []Course
 
-func (c Courses) Add(courseFN, chapterFN, pageFN string, content Content) Courses {
+func (c Courses) Add(filePath, courseFN, chapterFN, pageFN string, content Content) Courses {
 	for i, course := range c {
 		if course.Title == courseFN {
-			c[i].Chapters = c[i].Chapters.Add(chapterFN, pageFN, content)
+			c[i].Chapters = c[i].Chapters.Add(filePath, chapterFN, pageFN, content)
 			return c
 		}
 	}

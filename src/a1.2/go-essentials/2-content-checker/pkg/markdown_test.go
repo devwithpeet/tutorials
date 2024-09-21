@@ -4,19 +4,23 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseMarkdown(t *testing.T) {
 	t.Run("panic on broken", func(t *testing.T) {
-		filePath := "foo.md"
 		rawContent := "+++\n???"
 
-		assert.Panics(t, func() { ParseMarkdown(rawContent, filePath) })
+		// execute
+		content, err := ParseMarkdown(rawContent)
+		require.Error(t, err)
+
+		// verify
+		assert.Empty(t, content)
 	})
 
 	type args struct {
 		rawContent string
-		filePath   string
 	}
 	tests := []struct {
 		name string
@@ -27,11 +31,9 @@ func TestParseMarkdown(t *testing.T) {
 			name: "empty",
 			args: args{
 				rawContent: ``,
-				filePath:   "foo.md",
 			},
 			want: Content{
-				State:    Unknown,
-				FilePath: "foo.md",
+				State: Unknown,
 			},
 		},
 		{
@@ -40,12 +42,10 @@ func TestParseMarkdown(t *testing.T) {
 				rawContent: `+++
 title = "Prepare"
 +++`,
-				filePath: "foo.md",
 			},
 			want: Content{
-				Title:    "Prepare",
-				State:    Unknown,
-				FilePath: "foo.md",
+				Title: "Prepare",
+				State: Unknown,
 				Body: DefaultBody{
 					MainVideo: VideoProblem,
 				},
@@ -57,14 +57,12 @@ title = "Prepare"
 				rawContent: `+++
 state = "incomplete"
 +++`,
-				filePath: "15-foo.md",
 			},
 			want: Content{
-				Title:    "",
-				State:    Incomplete,
-				FilePath: "15-foo.md",
-				Weight:   "",
-				Slug:     "",
+				Title:  "",
+				State:  Incomplete,
+				Weight: "",
+				Slug:   "",
 				Body: DefaultBody{
 					MainVideo: VideoProblem,
 				},
@@ -74,11 +72,9 @@ state = "incomplete"
 			name: "empty-chapter",
 			args: args{
 				rawContent: ``,
-				filePath:   "_index.md",
 			},
 			want: Content{
-				State:    Unknown,
-				FilePath: "_index.md",
+				State: Unknown,
 			},
 		},
 		{
@@ -87,15 +83,12 @@ state = "incomplete"
 				rawContent: `+++
 title = "Prepare"
 +++`,
-				filePath: "_index.md",
 			},
 			want: Content{
-				Title:    "Prepare",
-				State:    Unknown,
-				FilePath: "_index.md",
-				Body: &IndexBody{
-					HasEpisodes:   false,
-					CompleteState: Incomplete,
+				Title: "Prepare",
+				State: Unknown,
+				Body: DefaultBody{
+					MainVideo: VideoProblem,
 				},
 			},
 		},
@@ -105,15 +98,11 @@ title = "Prepare"
 				rawContent: `+++
 state = "incomplete"
 +++`,
-				filePath: "_index.md",
 			},
 			want: Content{
-				Title:    "_index.md",
-				State:    Incomplete,
-				FilePath: "_index.md",
-				Body: &IndexBody{
-					HasEpisodes:   false,
-					CompleteState: Incomplete,
+				State: Incomplete,
+				Body: DefaultBody{
+					MainVideo: VideoProblem,
 				},
 			},
 		},
@@ -128,12 +117,10 @@ Episodes
 
 - bar
 `,
-				filePath: "_index.md",
 			},
 			want: Content{
-				Title:    "Prepare",
-				State:    Unknown,
-				FilePath: "_index.md",
+				Title: "Prepare",
+				State: Unknown,
 				Body: &IndexBody{
 					HasEpisodes:   true,
 					CompleteState: Incomplete,
@@ -152,12 +139,10 @@ Episodes
 
 - bar
 `,
-				filePath: "_index.md",
 			},
 			want: Content{
-				Title:    "Prepare",
-				State:    Complete,
-				FilePath: "_index.md",
+				Title: "Prepare",
+				State: Complete,
 				Body: &IndexBody{
 					HasEpisodes:   true,
 					CompleteState: Incomplete,
@@ -199,14 +184,12 @@ Practice
 
 - bar
 `,
-				filePath: "10-foo.md",
 			},
 			want: Content{
-				Title:    "Prepare",
-				State:    Complete,
-				FilePath: "10-foo.md",
-				Weight:   "",
-				Slug:     "",
+				Title:  "Prepare",
+				State:  Complete,
+				Weight: "",
+				Slug:   "",
 				Body: DefaultBody{
 					MainVideo:       VideoProblem,
 					HasSummary:      true,
@@ -264,14 +247,12 @@ Practice
 
 - bar
 `,
-				filePath: "10-foo.md",
 			},
 			want: Content{
-				Title:    "Prepare",
-				State:    Complete,
-				FilePath: "10-foo.md",
-				Weight:   "",
-				Slug:     "",
+				Title:  "Prepare",
+				State:  Complete,
+				Weight: "",
+				Slug:   "",
 				Body: DefaultBody{
 					MainVideo:       VideoProblem,
 					HasSummary:      true,
@@ -319,14 +300,12 @@ state = "complete"
 
 - bar
 `,
-				filePath: "10-foo.md",
 			},
 			want: Content{
-				Title:    "Prepare",
-				State:    Complete,
-				FilePath: "10-foo.md",
-				Weight:   "",
-				Slug:     "",
+				Title:  "Prepare",
+				State:  Complete,
+				Weight: "",
+				Slug:   "",
 				Body: DefaultBody{
 					MainVideo:       VideoProblem,
 					HasSummary:      true,
@@ -379,14 +358,12 @@ weight = 9
 
 - bar
 `,
-				filePath: "9-foo.md",
 			},
 			want: Content{
-				Title:    "Prepare",
-				State:    Complete,
-				FilePath: "9-foo.md",
-				Weight:   "9",
-				Slug:     "",
+				Title:  "Prepare",
+				State:  Complete,
+				Weight: "9",
+				Slug:   "",
 				Body: DefaultBody{
 					MainVideo:       VideoProblem,
 					HasSummary:      true,
@@ -434,14 +411,12 @@ on your choice of text editor. :D
 
 {{< youtube sbdFwFDTDqU >}}
 `,
-				filePath: "9-foo.md",
 			},
 			want: Content{
-				Title:    "What Your Text Editor Says About You",
-				State:    Complete,
-				FilePath: "9-foo.md",
-				Weight:   "60",
-				Slug:     "what-your-text-editor-says-about-you",
+				Title:  "What Your Text Editor Says About You",
+				State:  Complete,
+				Weight: "60",
+				Slug:   "what-your-text-editor-says-about-you",
 				Body: DefaultBody{
 					MainVideo:       VideoPresent,
 					HasSummary:      false,
@@ -540,14 +515,12 @@ hint on missing coordinates or duplicates.
 
 Example output:
 `,
-				filePath: "9-foo.md",
 			},
 			want: Content{
-				Title:    "Data Cleanup",
-				State:    Complete,
-				FilePath: "9-foo.md",
-				Weight:   "20",
-				Slug:     "data-cleanup",
+				Title:  "Data Cleanup",
+				State:  Complete,
+				Weight: "20",
+				Slug:   "data-cleanup",
 				Body: &PracticeBody{
 					HasDescription:           true,
 					HasRecommendedChallenges: true,
@@ -558,8 +531,11 @@ Example output:
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := ParseMarkdown(tt.args.rawContent, tt.args.filePath)
+			// execute
+			got, err := ParseMarkdown(tt.args.rawContent)
+			require.NoError(t, err)
 
+			// verify
 			assert.Equal(t, tt.want, got)
 		})
 	}

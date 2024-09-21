@@ -17,6 +17,7 @@ func TestCourses_Add(t *testing.T) {
 	}
 
 	type args struct {
+		filePath  string
 		courseFN  string
 		chapterFN string
 		pageFN    string
@@ -31,6 +32,7 @@ func TestCourses_Add(t *testing.T) {
 		{
 			name: "add to empty",
 			args: args{
+				filePath:  "foo/bar/baz.md",
 				courseFN:  "foo",
 				chapterFN: "bar",
 				pageFN:    "baz.md",
@@ -57,6 +59,7 @@ func TestCourses_Add(t *testing.T) {
 		{
 			name: "add to pages",
 			args: args{
+				filePath:  "foo/bar/baz.md",
 				courseFN:  "foo",
 				chapterFN: "bar",
 				pageFN:    "baz.md",
@@ -102,6 +105,7 @@ func TestCourses_Add(t *testing.T) {
 		{
 			name: "add to chapters",
 			args: args{
+				filePath:  "foo/bar/baz.md",
 				courseFN:  "foo",
 				chapterFN: "bar",
 				pageFN:    "baz.md",
@@ -152,6 +156,7 @@ func TestCourses_Add(t *testing.T) {
 		{
 			name: "add to courses",
 			args: args{
+				filePath:  "foo/bar/baz.md",
 				courseFN:  "foo",
 				chapterFN: "bar",
 				pageFN:    "baz.md",
@@ -207,7 +212,7 @@ func TestCourses_Add(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := tt.c.Add(tt.args.courseFN, tt.args.chapterFN, tt.args.pageFN, tt.args.content)
+			got := tt.c.Add(tt.args.filePath, tt.args.courseFN, tt.args.chapterFN, tt.args.pageFN, tt.args.content)
 			assert.Equalf(t, tt.want, got, "Add(%v, %v, %v, %v)", tt.args.courseFN, tt.args.chapterFN, tt.args.pageFN, tt.args.content)
 		})
 	}
