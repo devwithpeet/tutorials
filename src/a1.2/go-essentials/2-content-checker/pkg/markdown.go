@@ -9,13 +9,16 @@ import (
 )
 
 const (
-	sectionMainVideo     = "main video"
-	sectionSummary       = "summary"
-	sectionTopics        = "topics"
-	sectionRelatedVideos = "related videos"
-	sectionRelatedLinks  = "related links"
-	sectionPractice      = "practice"
-	sectionEpisodes      = "episodes"
+	sectionMainVideo             = "main video"
+	sectionSummary               = "summary"
+	sectionTopics                = "topics"
+	sectionRelatedVideos         = "related videos"
+	sectionRelatedLinks          = "related links"
+	sectionPractice              = "practice"
+	sectionEpisodes              = "episodes"
+	sectionDescription           = "description"
+	sectionRecommendedChallenges = "recommended challenges"
+	sectionAdditionalChallenges  = "additional challenges"
 )
 
 const markdownHeaderLength = 3
@@ -39,7 +42,12 @@ func ParseMarkdown(rawContent, filePath string) Content {
 	sections := extractSection(body)
 
 	if strings.Contains(filePath, "_index.md") {
-		return chapterContent(header, sections, filePath)
+		return NewIndexContent(header, sections, filePath)
+	}
+
+	_, hasDescription := sections[sectionDescription]
+	if hasDescription {
+		return NewPracticeContent(header, sections, filePath)
 	}
 
 	return NewDefaultContent(header, sections, filePath)
@@ -56,9 +64,9 @@ func splitMarkdown(in string) (string, string, error) {
 	return "", "", errors.New("could not split markdown")
 }
 
-func chapterContent(header string, sections map[string]string, filePath string) Content {
+func NewIndexContent(header string, sections map[string]string, filePath string) Content {
 	title := getHeaderValue(header, "title", filePath)
-	body := chapterToContentBody(sections)
+	body := sectionsToIndexBody(sections)
 	state := State(getHeaderValue(header, "state", string(Unknown)))
 
 	return Content{
@@ -66,6 +74,23 @@ func chapterContent(header string, sections map[string]string, filePath string) 
 		State:    state,
 		Body:     body,
 		FilePath: filePath,
+	}
+}
+
+func NewPracticeContent(header string, sections map[string]string, filePath string) Content {
+	title := getHeaderValue(header, "title", filePath)
+	state := State(getHeaderValue(header, "state", string(Unknown)))
+	slug := getHeaderValue(header, "slug", "")
+	weight := getHeaderValue(header, "weight", "")
+	body := sectionsToPracticeBody(sections)
+
+	return Content{
+		Title:    title,
+		State:    state,
+		Body:     body,
+		FilePath: filePath,
+		Slug:     slug,
+		Weight:   weight,
 	}
 }
 
@@ -171,8 +196,11 @@ func ExtractMainVideo(content string) MainVideo {
 
 	matches = regexYoutube.FindAllStringSubmatch(content, -1)
 	if len(matches) > 0 {
-		matchCount += len(matches)
-		mainVideo = VideoPresent
+		if matchCount == 0 {
+			return VideoPresent
+		}
+
+		matchCount++
 	}
 
 	if matchCount != 1 {
@@ -331,10 +359,23 @@ func sectionsToDefaultBody(sections map[string]string) DefaultBody {
 	}
 }
 
-func chapterToContentBody(sections map[string]string) ChapterBody {
+func sectionsToIndexBody(sections map[string]string) *IndexBody {
 	_, hasEpisodes := sections[sectionEpisodes]
 
-	return ChapterBody{
-		HasEpisodes: hasEpisodes,
+	return &IndexBody{
+		HasEpisodes:   hasEpisodes,
+		CompleteState: Incomplete,
+	}
+}
+
+func sectionsToPracticeBody(sections map[string]string) *PracticeBody {
+	_, hasDescription := sections[sectionDescription]
+	_, hasRecommendedChallenges := sections[sectionRecommendedChallenges]
+	_, hasAdditionalChallenges := sections[sectionAdditionalChallenges]
+
+	return &PracticeBody{
+		HasDescription:           hasDescription,
+		HasRecommendedChallenges: hasRecommendedChallenges,
+		HasAdditionalChallenges:  hasAdditionalChallenges,
 	}
 }

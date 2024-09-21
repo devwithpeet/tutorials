@@ -133,30 +133,52 @@ func (db DefaultBody) IsIndex() bool {
 	return false
 }
 
-type ChapterBody struct {
-	HasEpisodes bool
+type IndexBody struct {
+	HasEpisodes   bool
+	CompleteState State
 }
 
-func (cb ChapterBody) GetIssues(_ State) []string {
+func (ib *IndexBody) GetIssues(_ State) []string {
 	return nil
 }
 
-func (cb ChapterBody) CalculateState() State {
-	if cb.HasEpisodes {
-		return Complete
+func (ib *IndexBody) CalculateState() State {
+	if ib.HasEpisodes {
+		return ib.CompleteState
 	}
 
 	return Stub
 }
 
-func (cb ChapterBody) IsIndex() bool {
-	return true
+func (ib *IndexBody) SetCompleteState(state State) {
+	ib.CompleteState = state
+}
+
+type PracticeBody struct {
+	HasDescription           bool
+	HasRecommendedChallenges bool
+	HasAdditionalChallenges  bool
+}
+
+func (pb PracticeBody) GetIssues(_ State) []string {
+	return nil
+}
+
+func (pb PracticeBody) CalculateState() State {
+	if !pb.HasDescription {
+		return Stub
+	}
+
+	if pb.HasRecommendedChallenges && pb.HasAdditionalChallenges {
+		return Complete
+	}
+
+	return Incomplete
 }
 
 type Body interface {
 	GetIssues(state State) []string
 	CalculateState() State
-	IsIndex() bool
 }
 
 type Content struct {
@@ -171,7 +193,8 @@ type Content struct {
 func (c Content) GetIssues() []string {
 	issues := c.Body.GetIssues(c.State)
 
-	if c.Body.IsIndex() {
+	_, isDefaultBody := c.Body.(*DefaultBody)
+	if isDefaultBody {
 		if !strings.HasPrefix(c.FilePath, c.Weight) {
 			issues = append(issues, "title is not prefixed with weight: '"+c.FilePath+"', prefix: '"+c.Weight+"'")
 		}
@@ -191,10 +214,14 @@ func (p Page) GetIssues() []string {
 	return issues
 }
 
+func (p Page) GetState() State {
+	return p.Content.State
+}
+
 func (p Page) String() string {
 	color := cliBlue
 
-	switch p.Content.State {
+	switch p.GetState() {
 	case Complete:
 		color = cliGreen
 	case Incomplete:
@@ -224,12 +251,53 @@ func (p Pages) Add(pageFN string, content Content) Pages {
 }
 
 type Chapter struct {
-	Title string
-	Pages Pages
+	Title    string
+	Pages    Pages
+	prepared bool
 }
 
-func (c Chapter) String() string {
+func (c *Chapter) Prepare() {
+	if c.prepared {
+		return
+	}
+
+	c.prepared = true
+
+	var (
+		indexPage  *IndexBody
+		pagesExist = false
+		incomplete = false
+	)
+
+	for _, page := range c.Pages {
+		chapter, ok := page.Content.Body.(*IndexBody)
+		if ok {
+			indexPage = chapter
+
+			continue
+		}
+
+		pagesExist = true
+		if page.GetState() != Complete {
+			incomplete = true
+		}
+
+		if incomplete && indexPage != nil {
+			break
+		}
+	}
+
+	if indexPage == nil || !pagesExist || incomplete {
+		return
+	}
+
+	indexPage.SetCompleteState(Complete)
+}
+
+func (c *Chapter) String() string {
 	result := fmt.Sprintln("  ", c.Title)
+
+	c.Prepare()
 
 	for _, page := range c.Pages {
 		result += page.String()
@@ -238,7 +306,7 @@ func (c Chapter) String() string {
 	return result
 }
 
-type Chapters []Chapter
+type Chapters []*Chapter
 
 func (c Chapters) Add(chapterFN, pageFN string, content Content) Chapters {
 	for i, chapter := range c {
@@ -248,12 +316,18 @@ func (c Chapters) Add(chapterFN, pageFN string, content Content) Chapters {
 		}
 	}
 
-	return append(c, Chapter{Title: chapterFN, Pages: Pages{{Filename: pageFN, Content: content}}})
+	return append(c, &Chapter{Title: chapterFN, Pages: Pages{{Filename: pageFN, Content: content}}})
 }
 
 type Course struct {
 	Title    string
 	Chapters Chapters
+}
+
+func (c Course) Prepare() {
+	for _, chapter := range c.Chapters {
+		chapter.Prepare()
+	}
 }
 
 func (c Course) String() string {

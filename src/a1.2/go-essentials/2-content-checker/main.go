@@ -26,6 +26,8 @@ func main() {
 	// fetch markdown files
 	courses, count := CrawlMarkdownFiles(matches)
 
+	Prepare(courses)
+
 	Print(count, courses)
 }
 
@@ -68,6 +70,12 @@ func CrawlMarkdownFiles(matches []string) (pkg.Courses, int) {
 	}
 
 	return result, count
+}
+
+func Prepare(courses pkg.Courses) {
+	for _, course := range courses {
+		course.Prepare()
+	}
 }
 
 func Print(count int, courses pkg.Courses) {

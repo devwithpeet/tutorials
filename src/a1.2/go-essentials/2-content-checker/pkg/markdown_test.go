@@ -38,12 +38,12 @@ func TestParseMarkdown(t *testing.T) {
 			name: "title-only",
 			args: args{
 				rawContent: `+++
-title = "Hello"
+title = "Prepare"
 +++`,
 				filePath: "foo.md",
 			},
 			want: Content{
-				Title:    "Hello",
+				Title:    "Prepare",
 				State:    Unknown,
 				FilePath: "foo.md",
 				Body: DefaultBody{
@@ -85,15 +85,18 @@ state = "incomplete"
 			name: "title-only-chapter",
 			args: args{
 				rawContent: `+++
-title = "Hello"
+title = "Prepare"
 +++`,
 				filePath: "_index.md",
 			},
 			want: Content{
-				Title:    "Hello",
+				Title:    "Prepare",
 				State:    Unknown,
 				FilePath: "_index.md",
-				Body:     ChapterBody{},
+				Body: &IndexBody{
+					HasEpisodes:   false,
+					CompleteState: Incomplete,
+				},
 			},
 		},
 		{
@@ -108,14 +111,17 @@ state = "incomplete"
 				Title:    "_index.md",
 				State:    Incomplete,
 				FilePath: "_index.md",
-				Body:     ChapterBody{},
+				Body: &IndexBody{
+					HasEpisodes:   false,
+					CompleteState: Incomplete,
+				},
 			},
 		},
 		{
 			name: "complete-chapter-without-state",
 			args: args{
 				rawContent: `+++
-title = "Hello"
+title = "Prepare"
 +++
 Episodes
 --------
@@ -125,11 +131,12 @@ Episodes
 				filePath: "_index.md",
 			},
 			want: Content{
-				Title:    "Hello",
+				Title:    "Prepare",
 				State:    Unknown,
 				FilePath: "_index.md",
-				Body: ChapterBody{
-					HasEpisodes: true,
+				Body: &IndexBody{
+					HasEpisodes:   true,
+					CompleteState: Incomplete,
 				},
 			},
 		},
@@ -137,7 +144,7 @@ Episodes
 			name: "complete-chapter-with-state",
 			args: args{
 				rawContent: `+++
-title = "Hello"
+title = "Prepare"
 state = "complete"
 +++
 Episodes
@@ -148,11 +155,12 @@ Episodes
 				filePath: "_index.md",
 			},
 			want: Content{
-				Title:    "Hello",
+				Title:    "Prepare",
 				State:    Complete,
 				FilePath: "_index.md",
-				Body: ChapterBody{
-					HasEpisodes: true,
+				Body: &IndexBody{
+					HasEpisodes:   true,
+					CompleteState: Incomplete,
 				},
 			},
 		},
@@ -160,7 +168,7 @@ Episodes
 			name: "almost-complete-page",
 			args: args{
 				rawContent: `+++
-title = "Hello"
+title = "Prepare"
 state = "complete"
 +++
 Summary
@@ -194,7 +202,7 @@ Practice
 				filePath: "10-foo.md",
 			},
 			want: Content{
-				Title:    "Hello",
+				Title:    "Prepare",
 				State:    Complete,
 				FilePath: "10-foo.md",
 				Weight:   "",
@@ -223,7 +231,7 @@ Practice
 			name: "complete-page",
 			args: args{
 				rawContent: `+++
-title = "Hello"
+title = "Prepare"
 state = "complete"
 +++
 Summary
@@ -259,7 +267,7 @@ Practice
 				filePath: "10-foo.md",
 			},
 			want: Content{
-				Title:    "Hello",
+				Title:    "Prepare",
 				State:    Complete,
 				FilePath: "10-foo.md",
 				Weight:   "",
@@ -288,7 +296,7 @@ Practice
 			name: "incomplete-if-practice-is-missing",
 			args: args{
 				rawContent: `+++
-title = "Hello"
+title = "Prepare"
 state = "complete"
 +++
 ## Summary
@@ -314,7 +322,7 @@ state = "complete"
 				filePath: "10-foo.md",
 			},
 			want: Content{
-				Title:    "Hello",
+				Title:    "Prepare",
 				State:    Complete,
 				FilePath: "10-foo.md",
 				Weight:   "",
@@ -343,7 +351,7 @@ state = "complete"
 			name: "complete-page-with-hashmark-headers",
 			args: args{
 				rawContent: `+++
-title = "Hello"
+title = "Prepare"
 state = "complete"
 weight = 9
 +++
@@ -374,7 +382,7 @@ weight = 9
 				filePath: "9-foo.md",
 			},
 			want: Content{
-				Title:    "Hello",
+				Title:    "Prepare",
 				State:    Complete,
 				FilePath: "9-foo.md",
 				Weight:   "9",
@@ -445,83 +453,105 @@ on your choice of text editor. :D
 			},
 		},
 		{
-			name: "bug unclear 2",
+			name: "practice",
 			args: args{
 				rawContent: `+++
-title = 'Installing Linux for OSX Users'
-date = 2024-07-07T12:31:24+02:00
-weight = 30
+title = 'Data Cleanup'
+date = 2024-07-09T19:26:57+02:00
+weight = 20
 state = 'complete'
 draft = false
-slug = 'installing-linux-for-osx-users'
-tags = ["linux", "no practice"]
+slug = 'data-cleanup'
+tags = ["vim", "practice"]
 disableMermaid = true
 disableOpenapi = true
-audience = "Mac users"
+audience = "all"
 audienceImportance = "important"
-outsideImportance = "optional"
 +++
 
-Main Video
-----------
+Description
+-----------
 
-{{< main-really-missing >}}
+Download [this SQL File](/a1.1/practice-data-cleanup.sql).
 
-Summary
--------
+At this point, you don't really need to understand what this file is about, all you need to know is that we want to
+turn it into a JSON file, using the values found in the second parentheses.
 
-Okay, so the truth is, while I think Linux is a superior desktop in general, OSX is okay too. If you've already
-invested your money into buying a Mac, you might be able to just get away using it. As it's a Unix based OS, most of the
-command line tools work on OSX as well, and it's quite okay to switch back and forth between a Mac dev machine and a
-Linux server if you need to. Learning the Linux commands would still make a lot of sense for you.
+So basically your task is not turn that file into something that looks like this:
 
-Related Videos
---------------
+You don't need to worry about the white spaces the following two examples are also acceptable solutions:
 
-### Running Linux in a Virtual Machine
+### Examples
 
-#### How to install Ubuntu in MacOS Apple Silicon Chip M1/M2/M3 - TopNotch Programmer
+#### Example 1
 
-{{< time 2 >}} {{<badge-extra>}}
+#### Example 2
 
-{{< youtube 3pj2Uck_Afc >}}
+#### Example 3
+
+### Hints
+
+**Hint:** Arguably the fastest solution is using an editor with Vim motions and Vim macros, but other solutions are fine
+as well. If you're familiar with tools like grep, sed or awk, those can be quite efficient for tasks like this too.
+
+Recommended challenges
+----------------------
+
+### Display overall stats
+
+Write an app to display the coordinates (x, y) for the largest, and smallest values for the whole dataset.
+
+Example output:
 
 
-### Dual-booting Linux on your ARM Mac
+### Display stats for each chart
 
-OK, so this is not for the faint-hearted. **I do not recommend anyone to do this.** But I would totally do this on my own
-MacBook, if I had one. :)
+Write an app to display the coordinates (x, y) for the largest, and smallest values for each chart.
 
-#### I use Arch on an M1 MacBook, btw - Fireship
+So an example output could be the following:
 
-{{< time 3 >}} {{<badge-fun>}}
+Note that the order of the stat blocks does not matter, lemmy could come before lemmy.
 
-{{< youtube j_I9nkpovCQ >}}
+
+Additional challenges
+---------------------
+
+{{<badge-extra>}}
+
+### Sorting
+
+This one is only different from the "Display chart stats" challenge is that here the order of the stats matter, they
+should be ordered by the chart name, ordered Z to A, plus we should display all the coordinates where the value is the
+maximum or minimum and make sure that they're ordered in incremental order.
+
+Example output:
+
+### Find the size of chart maps
+
+Find a program that is able to tell the size of the map we have complete coordinates, meaning that no points are missing.
+
+Example output:
+
+
+### Find the size of intended chart maps and errors
+
+People make mistakes, the provided SQL file is also imperfect. Modify your application so that it can give reviewers a
+hint on missing coordinates or duplicates.
+
+Example output:
 `,
 				filePath: "9-foo.md",
 			},
 			want: Content{
-				Title:    "Installing Linux for OSX Users",
+				Title:    "Data Cleanup",
 				State:    Complete,
 				FilePath: "9-foo.md",
-				Weight:   "30",
-				Slug:     "installing-linux-for-osx-users",
-				Body: DefaultBody{
-					MainVideo:       VideoReallyMissing,
-					HasSummary:      true,
-					HasTopics:       false,
-					HasPractice:     false,
-					HasRelatedLinks: false,
-					RelatedVideos: RelatedVideos{
-						{
-							Badge:   "extra",
-							Minutes: 2,
-						},
-						{
-							Badge:   "fun",
-							Minutes: 3,
-						},
-					},
+				Weight:   "20",
+				Slug:     "data-cleanup",
+				Body: &PracticeBody{
+					HasDescription:           true,
+					HasRecommendedChallenges: true,
+					HasAdditionalChallenges:  true,
 				},
 			},
 		},
