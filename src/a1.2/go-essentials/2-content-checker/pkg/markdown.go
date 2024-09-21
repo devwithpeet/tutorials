@@ -95,7 +95,8 @@ func NewDefaultContent(header string, sections map[string]string) Content {
 	state := NewState(getHeaderValue(header, "state", string(Unknown)))
 	slug := getHeaderValue(header, "slug", "")
 	weight := getHeaderValue(header, "weight", "")
-	defaultBody := sectionsToDefaultBody(sections)
+	tags := getHeaderValues(header, "tags", nil)
+	defaultBody := sectionsToDefaultBody(sections, tags)
 
 	return Content{
 		Title:  title,
@@ -119,6 +120,29 @@ func getHeaderValue(header, key, defaultValue string) string {
 		if matches[1] == key {
 			return strings.Trim(matches[2], `'"`)
 		}
+	}
+
+	return defaultValue
+}
+
+func getHeaderValues(header, key string, defaultValue []string) []string {
+	for _, row := range strings.Split(header, "\n") {
+		matches := regexHeader.FindStringSubmatch(row)
+
+		if len(matches) != 3 {
+			continue
+		}
+
+		if matches[1] != key {
+			continue
+		}
+
+		var tags []string
+		for _, part := range strings.Split(strings.Trim(matches[2], `[]`), ",") {
+			tags = append(tags, strings.Trim(part, ` '"`))
+		}
+
+		return tags
 	}
 
 	return defaultValue
@@ -343,7 +367,7 @@ func extractRelatedVideo(content string) RelatedVideo {
 	}
 }
 
-func sectionsToDefaultBody(sections map[string]string) DefaultBody {
+func sectionsToDefaultBody(sections map[string]string, tags []string) DefaultBody {
 	_, hasSummary := sections[sectionSummary]
 	_, hasTopics := sections[sectionTopics]
 	_, hasRelatedLinks := sections[sectionRelatedLinks]
@@ -352,13 +376,21 @@ func sectionsToDefaultBody(sections map[string]string) DefaultBody {
 	mainVideo := ExtractMainVideo(sections[sectionMainVideo])
 	relatedVideos := ExtractRelatedVideos(sections[sectionRelatedVideos])
 
+	usefulWithoutVideo := false
+	for _, tag := range tags {
+		if tag == "useful-without-video" {
+			usefulWithoutVideo = true
+		}
+	}
+
 	return DefaultBody{
-		MainVideo:       mainVideo,
-		HasSummary:      hasSummary,
-		HasTopics:       hasTopics,
-		RelatedVideos:   relatedVideos,
-		HasRelatedLinks: hasRelatedLinks,
-		HasPractice:     hasPractice,
+		MainVideo:          mainVideo,
+		HasSummary:         hasSummary,
+		HasTopics:          hasTopics,
+		RelatedVideos:      relatedVideos,
+		HasRelatedLinks:    hasRelatedLinks,
+		HasPractice:        hasPractice,
+		UsefulWithoutVideo: usefulWithoutVideo,
 	}
 }
 

@@ -90,12 +90,13 @@ func (rv RelatedVideos) Has(badge Badge) bool {
 }
 
 type DefaultBody struct {
-	MainVideo       MainVideo
-	HasSummary      bool
-	HasTopics       bool
-	HasPractice     bool
-	RelatedVideos   RelatedVideos
-	HasRelatedLinks bool
+	MainVideo          MainVideo
+	HasSummary         bool
+	HasTopics          bool
+	HasPractice        bool
+	RelatedVideos      RelatedVideos
+	HasRelatedLinks    bool
+	UsefulWithoutVideo bool
 }
 
 func (db DefaultBody) GetIssues(state State) []string {
@@ -103,11 +104,11 @@ func (db DefaultBody) GetIssues(state State) []string {
 
 	switch db.MainVideo {
 	case VideoReallyMissing:
-		if db.RelatedVideos.Has(Alternative) {
+		if db.RelatedVideos.Has(Alternative) || db.UsefulWithoutVideo {
 			issues = append(issues, "main video is NOT REALLY missing")
 		}
 	case VideoMissing:
-		if !db.RelatedVideos.Has(Alternative) {
+		if !db.RelatedVideos.Has(Alternative) && !db.UsefulWithoutVideo {
 			issues = append(issues, "main video is REALLY missing")
 		}
 	}
@@ -124,7 +125,7 @@ func (db DefaultBody) CalculateState() State {
 		return Complete
 	}
 
-	if db.MainVideo == VideoPresent || db.RelatedVideos.Has(Alternative) {
+	if db.MainVideo == VideoPresent || db.RelatedVideos.Has(Alternative) || db.UsefulWithoutVideo {
 		return Incomplete
 	}
 

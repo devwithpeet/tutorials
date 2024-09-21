@@ -488,6 +488,52 @@ Example output:
 				},
 			},
 		},
+		{
+			name: "useful without video",
+			args: args{
+				rawContent: `+++
+title = 'Free Dev Learning'
+date = 2024-06-29T01:42:15+02:00
+weight = 10
+state = 'incomplete'
+draft = false
+slug = 'free-dev-learning'
+tags = ["career", "learning", "no-practice", "useful-without-video"]
+disableMermaid = true
+disableOpenapi = true
+audience = "all"
+audienceImportance = "relevant"
++++
+
+Main Video
+----------
+
+{{<main-missing>}}
+
+Related Links
+-------------
+
+### Platforms
+
+- [exercism](https://exercism.org/)
+`,
+			},
+			want: Content{
+				Title:  "Free Dev Learning",
+				State:  Incomplete,
+				Weight: "10",
+				Slug:   "free-dev-learning",
+				Body: DefaultBody{
+					MainVideo:          VideoMissing,
+					HasSummary:         false,
+					HasTopics:          false,
+					HasPractice:        false,
+					RelatedVideos:      nil,
+					HasRelatedLinks:    true,
+					UsefulWithoutVideo: true,
+				},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
