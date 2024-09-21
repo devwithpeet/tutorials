@@ -93,7 +93,7 @@ type DefaultBody struct {
 	MainVideo          MainVideo
 	HasSummary         bool
 	HasTopics          bool
-	HasPractice        bool
+	HasExercises       bool
 	RelatedVideos      RelatedVideos
 	HasRelatedLinks    bool
 	UsefulWithoutVideo bool
@@ -121,7 +121,7 @@ func (db DefaultBody) GetIssues(state State) []string {
 }
 
 func (db DefaultBody) CalculateState() State {
-	if db.MainVideo == VideoPresent && db.HasSummary {
+	if db.MainVideo == VideoPresent && db.HasSummary && db.HasExercises {
 		return Complete
 	}
 
@@ -340,7 +340,7 @@ func (c Chapters) Add(filePath, chapterFN, pageFN string, content Content) Chapt
 		}
 	}
 
-	return append(c, &Chapter{Title: chapterFN, Pages: Pages{{FilePath: pageFN, Content: content}}})
+	return append(c, &Chapter{Title: chapterFN, Pages: Pages{{FilePath: filePath, Title: pageFN, Content: content}}})
 }
 
 type Course struct {
@@ -384,5 +384,5 @@ func (c Courses) Add(filePath, courseFN, chapterFN, pageFN string, content Conte
 		}
 	}
 
-	return append(c, Course{Title: courseFN, Chapters: Chapters{{Title: chapterFN, Pages: Pages{{FilePath: pageFN, Content: content}}}}})
+	return append(c, Course{Title: courseFN, Chapters: Chapters{{Title: chapterFN, Pages: Pages{{FilePath: filePath, Title: pageFN, Content: content}}}}})
 }

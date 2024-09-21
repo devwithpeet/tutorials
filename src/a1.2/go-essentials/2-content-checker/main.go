@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,7 +35,7 @@ func main() {
 	}
 
 	// fetch markdown files
-	courses, count := CrawlMarkdownFiles(files)
+	courses, count := CrawlMarkdownFiles(files, maxErrors)
 
 	Prepare(courses)
 
@@ -58,7 +59,11 @@ func findFiles(root string) ([]string, error) {
 
 const maxErrors = 3
 
-func CrawlMarkdownFiles(matches []string) (pkg.Courses, int) {
+func CrawlMarkdownFiles(matches []string, maxErrors int) (pkg.Courses, int) {
+	if maxErrors < 0 {
+		maxErrors = math.MaxInt
+	}
+
 	result := make(pkg.Courses, 0, len(matches))
 
 	var count, errCount int
@@ -119,6 +124,11 @@ func Errors(count int, courses pkg.Courses) {
 	fmt.Println("Processed", count, "markdown files")
 
 	for _, course := range courses {
-		fmt.Println(strings.Join(course.GetErrors(), "\n"))
+		errors := course.GetErrors()
+		if len(errors) == 0 {
+			continue
+		}
+
+		fmt.Println(strings.Join(errors, "\n"))
 	}
 }

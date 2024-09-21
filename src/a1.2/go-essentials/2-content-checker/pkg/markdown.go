@@ -14,7 +14,7 @@ const (
 	sectionTopics                = "topics"
 	sectionRelatedVideos         = "related videos"
 	sectionRelatedLinks          = "related links"
-	sectionPractice              = "practice"
+	sectionExercises             = "exercises"
 	sectionEpisodes              = "episodes"
 	sectionDescription           = "description"
 	sectionRecommendedChallenges = "recommended challenges"
@@ -367,19 +367,31 @@ func extractRelatedVideo(content string) RelatedVideo {
 	}
 }
 
+const (
+	tagUsefulWithoutVideo = "useful-without-video"
+	tagNoExercise         = "no-exercise"
+)
+
 func sectionsToDefaultBody(sections map[string]string, tags []string) DefaultBody {
 	_, hasSummary := sections[sectionSummary]
 	_, hasTopics := sections[sectionTopics]
 	_, hasRelatedLinks := sections[sectionRelatedLinks]
-	_, hasPractice := sections[sectionPractice]
+	exercises, hasExercises := sections[sectionExercises]
 
 	mainVideo := ExtractMainVideo(sections[sectionMainVideo])
 	relatedVideos := ExtractRelatedVideos(sections[sectionRelatedVideos])
 
+	if hasExercises && strings.TrimSpace(exercises) == "" {
+		hasExercises = false
+	}
+
 	usefulWithoutVideo := false
 	for _, tag := range tags {
-		if tag == "useful-without-video" {
+		if tag == tagUsefulWithoutVideo {
 			usefulWithoutVideo = true
+		}
+		if tag == tagNoExercise {
+			hasExercises = true
 		}
 	}
 
@@ -389,7 +401,7 @@ func sectionsToDefaultBody(sections map[string]string, tags []string) DefaultBod
 		HasTopics:          hasTopics,
 		RelatedVideos:      relatedVideos,
 		HasRelatedLinks:    hasRelatedLinks,
-		HasPractice:        hasPractice,
+		HasExercises:       hasExercises,
 		UsefulWithoutVideo: usefulWithoutVideo,
 	}
 }

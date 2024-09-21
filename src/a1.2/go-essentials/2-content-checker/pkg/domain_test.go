@@ -11,8 +11,8 @@ func TestCourses_Add(t *testing.T) {
 		Title: "Baz",
 		State: Complete,
 		Body: DefaultBody{
-			MainVideo:   VideoProblem,
-			HasPractice: true,
+			MainVideo:    VideoProblem,
+			HasExercises: true,
 		},
 	}
 

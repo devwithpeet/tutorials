@@ -179,8 +179,8 @@ Related Links
 
 - bar
 
-Practice
---------
+Exercises
+---------
 
 - bar
 `,
@@ -194,7 +194,7 @@ Practice
 					MainVideo:       VideoProblem,
 					HasSummary:      true,
 					HasTopics:       true,
-					HasPractice:     true,
+					HasExercises:    true,
 					HasRelatedLinks: true,
 					RelatedVideos:   RelatedVideos{},
 				},
@@ -232,8 +232,8 @@ Related Links
 
 - bar
 
-Practice
---------
+Exercises
+---------
 
 - bar
 `,
@@ -247,7 +247,7 @@ Practice
 					MainVideo:       VideoProblem,
 					HasSummary:      true,
 					HasTopics:       true,
-					HasPractice:     true,
+					HasExercises:    true,
 					HasRelatedLinks: true,
 					RelatedVideos:   RelatedVideos{},
 				},
@@ -290,7 +290,7 @@ state = "complete"
 					MainVideo:       VideoProblem,
 					HasSummary:      true,
 					HasTopics:       true,
-					HasPractice:     false,
+					HasExercises:    false,
 					HasRelatedLinks: true,
 					RelatedVideos:   RelatedVideos{},
 				},
@@ -324,7 +324,7 @@ weight = 9
 
 - bar
 
-## Practice
+## Exercises
 
 - bar
 `,
@@ -338,7 +338,7 @@ weight = 9
 					MainVideo:       VideoProblem,
 					HasSummary:      true,
 					HasTopics:       true,
-					HasPractice:     true,
+					HasExercises:    true,
 					HasRelatedLinks: true,
 					RelatedVideos:   RelatedVideos{},
 				},
@@ -354,7 +354,7 @@ weight = 60
 state = 'complete'
 draft = false
 slug = 'what-your-text-editor-says-about-you'
-tags = ["no-practice", "fun", "vim", "vscode", "goland", "jetbrains"]
+tags = ["no-exercise", "fun", "vim", "vscode", "goland", "jetbrains"]
 disableMermaid = true
 disableOpenapi = true
 audience = 'all'
@@ -381,7 +381,7 @@ on your choice of text editor. :D
 					MainVideo:       VideoPresent,
 					HasSummary:      false,
 					HasTopics:       false,
-					HasPractice:     false,
+					HasExercises:    true,
 					HasRelatedLinks: false,
 					RelatedVideos:   nil,
 				},
@@ -498,7 +498,7 @@ weight = 10
 state = 'incomplete'
 draft = false
 slug = 'free-dev-learning'
-tags = ["career", "learning", "no-practice", "useful-without-video"]
+tags = ["career", "learning", "no-exercise", "useful-without-video"]
 disableMermaid = true
 disableOpenapi = true
 audience = "all"
@@ -527,7 +527,7 @@ Related Links
 					MainVideo:          VideoMissing,
 					HasSummary:         false,
 					HasTopics:          false,
-					HasPractice:        false,
+					HasExercises:       true,
 					RelatedVideos:      nil,
 					HasRelatedLinks:    true,
 					UsefulWithoutVideo: true,
