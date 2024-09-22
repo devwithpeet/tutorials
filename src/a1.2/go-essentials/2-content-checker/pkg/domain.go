@@ -25,19 +25,6 @@ const (
 	Stub       State = "stub"
 )
 
-func NewState(content string) State {
-	switch content {
-	case "complete":
-		return Complete
-	case "incomplete":
-		return Incomplete
-	case "stub":
-		return Stub
-	}
-
-	return ""
-}
-
 type Badge string
 
 const (
@@ -155,29 +142,47 @@ type DefaultBody struct {
 	RelatedVideos      RelatedVideos
 	HasRelatedLinks    bool
 	UsefulWithoutVideo bool
-	Titles             []string
+	SectionTitles      []string
 }
 
 var defaultBodySectionMap = map[string]int{
 	sectionMainVideo:       0,
 	sectionSummary:         1,
 	sectionTopics:          2,
-	sectionRelatedVideos:   3,
-	sectionRelatedArticles: 4,
-	sectionRelatedLinks:    5,
-	sectionExercises:       6,
+	sectionCode:            3,
+	sectionRelatedLessons:  4,
+	sectionRelatedVideos:   5,
+	sectionRelatedArticles: 6,
+	sectionRelatedLinks:    7,
+	sectionExercises:       8,
+	sectionNotes:           9,
 }
 
 func isOrderedCorrectly(goldenMap map[string]int, givenSlice []string) (string, bool) {
+	found := make(map[string]struct{}, len(givenSlice))
+
 	lastIndex := -1
 	for _, item := range givenSlice {
+		// duplicate section
+		if _, foundAlready := found[item]; foundAlready {
+			return item, false
+		}
+
+		found[item] = struct{}{}
+
+		// right order
 		if index, exists := goldenMap[item]; exists {
 			if index < lastIndex {
 				return item, false
 			}
 
 			lastIndex = index
+
+			continue
 		}
+
+		// unexpected section
+		return item, false
 	}
 
 	return "", true
@@ -201,7 +206,7 @@ func (db DefaultBody) GetIssues(state State) []string {
 		issues = append(issues, fmt.Sprintf("state mismatch. got: %s, want: %s", state, db.CalculateState()))
 	}
 
-	if item, ok := isOrderedCorrectly(defaultBodySectionMap, db.Titles); !ok {
+	if item, ok := isOrderedCorrectly(defaultBodySectionMap, db.SectionTitles); !ok {
 		issues = append(issues, "sections are not in the correct order, first out of order: "+item)
 	}
 

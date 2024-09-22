@@ -224,3 +224,117 @@ func TestCourses_Add(t *testing.T) {
 		})
 	}
 }
+
+func Test_isOrderedCorrectly(t *testing.T) {
+	type args struct {
+		goldenMap  map[string]int
+		givenSlice []string
+	}
+	tests := []struct {
+		name             string
+		args             args
+		wantFirstFailure string
+		wantOK           bool
+	}{
+		{
+			name: "empty",
+			args: args{
+				goldenMap:  defaultBodySectionMap,
+				givenSlice: []string{},
+			},
+			wantFirstFailure: "",
+			wantOK:           true,
+		},
+		{
+			name: "main-only",
+			args: args{
+				goldenMap:  defaultBodySectionMap,
+				givenSlice: []string{sectionMainVideo},
+			},
+			wantFirstFailure: "",
+			wantOK:           true,
+		},
+		{
+			name: "notes-only",
+			args: args{
+				goldenMap:  defaultBodySectionMap,
+				givenSlice: []string{sectionNotes},
+			},
+			wantFirstFailure: "",
+			wantOK:           true,
+		},
+		{
+			name: "main-notes",
+			args: args{
+				goldenMap:  defaultBodySectionMap,
+				givenSlice: []string{sectionMainVideo, sectionNotes},
+			},
+			wantFirstFailure: "",
+			wantOK:           true,
+		},
+		{
+			name: "notes-main",
+			args: args{
+				goldenMap:  defaultBodySectionMap,
+				givenSlice: []string{sectionNotes, sectionMainVideo},
+			},
+			wantFirstFailure: sectionMainVideo,
+			wantOK:           false,
+		},
+		{
+			name: "notes-notes",
+			args: args{
+				goldenMap:  defaultBodySectionMap,
+				givenSlice: []string{sectionNotes, sectionNotes},
+			},
+			wantFirstFailure: sectionNotes,
+			wantOK:           false,
+		},
+		{
+			name: "main-main",
+			args: args{
+				goldenMap:  defaultBodySectionMap,
+				givenSlice: []string{sectionMainVideo, sectionMainVideo},
+			},
+			wantFirstFailure: sectionMainVideo,
+			wantOK:           false,
+		},
+		{
+			name: "main-notes-main",
+			args: args{
+				goldenMap:  defaultBodySectionMap,
+				givenSlice: []string{sectionMainVideo, sectionNotes, sectionMainVideo},
+			},
+			wantFirstFailure: sectionMainVideo,
+			wantOK:           false,
+		},
+		{
+			name: "unexpected",
+			args: args{
+				goldenMap:  defaultBodySectionMap,
+				givenSlice: []string{"unexpected"},
+			},
+			wantFirstFailure: "unexpected",
+			wantOK:           false,
+		},
+		{
+			name: "unexpected after main",
+			args: args{
+				goldenMap:  defaultBodySectionMap,
+				givenSlice: []string{sectionMainVideo, "unexpected"},
+			},
+			wantFirstFailure: "unexpected",
+			wantOK:           false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// execute
+			gotFirstFailure, gotOK := isOrderedCorrectly(tt.args.goldenMap, tt.args.givenSlice)
+
+			// verify
+			assert.Equalf(t, tt.wantFirstFailure, gotFirstFailure, "isOrderedCorrectly(%v, %v)", tt.args.goldenMap, tt.args.givenSlice)
+			assert.Equalf(t, tt.wantOK, gotOK, "isOrderedCorrectly(%v, %v)", tt.args.goldenMap, tt.args.givenSlice)
+		})
+	}
+}

@@ -44,8 +44,8 @@ title = "Prepare"
 			want: Content{
 				Title: "Prepare",
 				Body: DefaultBody{
-					MainVideo: VideoProblem,
-					Titles:    []string{},
+					MainVideo:     VideoProblem,
+					SectionTitles: []string{},
 				},
 			},
 		},
@@ -62,8 +62,8 @@ state = "incomplete"
 				Weight: "",
 				Slug:   "",
 				Body: DefaultBody{
-					MainVideo: VideoProblem,
-					Titles:    []string{},
+					MainVideo:     VideoProblem,
+					SectionTitles: []string{},
 				},
 			},
 		},
@@ -84,8 +84,8 @@ title = "Prepare"
 			want: Content{
 				Title: "Prepare",
 				Body: DefaultBody{
-					MainVideo: VideoProblem,
-					Titles:    []string{},
+					MainVideo:     VideoProblem,
+					SectionTitles: []string{},
 				},
 			},
 		},
@@ -99,8 +99,8 @@ state = "incomplete"
 			want: Content{
 				State: Incomplete,
 				Body: DefaultBody{
-					MainVideo: VideoProblem,
-					Titles:    []string{},
+					MainVideo:     VideoProblem,
+					SectionTitles: []string{},
 				},
 			},
 		},
@@ -194,7 +194,7 @@ Exercises
 					HasExercises:    true,
 					HasRelatedLinks: true,
 					RelatedVideos:   RelatedVideos{},
-					Titles:          []string{sectionSummary, sectionTopics, sectionRelatedVideos, sectionRelatedLinks, sectionExercises},
+					SectionTitles:   []string{sectionSummary, sectionTopics, sectionRelatedVideos, sectionRelatedLinks, sectionExercises},
 				},
 			},
 		},
@@ -248,7 +248,7 @@ Exercises
 					HasExercises:    true,
 					HasRelatedLinks: true,
 					RelatedVideos:   RelatedVideos{},
-					Titles: []string{
+					SectionTitles: []string{
 						sectionSummary,
 						sectionMainVideo,
 						sectionTopics,
@@ -299,7 +299,7 @@ state = "complete"
 					HasExercises:    false,
 					HasRelatedLinks: true,
 					RelatedVideos:   RelatedVideos{},
-					Titles: []string{
+					SectionTitles: []string{
 						sectionSummary,
 						sectionMainVideo,
 						sectionTopics,
@@ -354,7 +354,7 @@ weight = 9
 					HasExercises:    true,
 					HasRelatedLinks: true,
 					RelatedVideos:   RelatedVideos{},
-					Titles: []string{
+					SectionTitles: []string{
 						sectionSummary,
 						sectionMainVideo,
 						sectionTopics,
@@ -405,7 +405,7 @@ on your choice of text editor. :D
 					HasExercises:    true,
 					HasRelatedLinks: false,
 					RelatedVideos:   nil,
-					Titles: []string{
+					SectionTitles: []string{
 						sectionMainVideo,
 					},
 				},
@@ -561,11 +561,253 @@ Related Links
 					RelatedVideos:      nil,
 					HasRelatedLinks:    true,
 					UsefulWithoutVideo: true,
-					Titles:             []string{sectionMainVideo, sectionRelatedLinks},
+					SectionTitles:      []string{sectionMainVideo, sectionRelatedLinks},
 				},
 				Audience:   All,
 				Importance: Relevant,
 				Tags:       []string{"career", "learning", "no-exercise", "useful-without-video"},
+			},
+		},
+		{
+			name: "complex related videos section",
+			args: args{
+				rawContent: `+++
+title = 'Electronic Computing'
+date = 2024-07-28T11:34:54+02:00
+weight = 80
+state = 'complete'
+draft = false
+slug = 'electronic-computing'
+tags = ["computer-science", "no-exercise"]
+disableMermaid = true
+disableOpenapi = true
+audience = "all"
+audienceImportance = "optional"
++++
+
+Main Video
+----------
+
+{{< time 11 >}}
+
+Thanks to the [Carrie Anne](https://about.me/carrieannephilbin) and [Crash Course](https://www.youtube.com/@crashcourse)
+I will not have to make a video of this topic.
+
+{{< youtube id=LN0ucKNX0hc start=56 >}}
+
+Summary
+-------
+
+In this lesson, we will learn about the history of electronic computing, starting from the first programmable computer
+to the first general-purpose computer.
+
+Topics
+------
+
+- [Harvard Mark I](https://en.wikipedia.org/wiki/Harvard_Mark_I) - 1944, The first programmable computer
+- [Mechanical relay](https://en.wikipedia.org/wiki/Relay) - An electrically operated switch
+- [Grace Hopper](https://en.wikipedia.org/wiki/Grace_Hopper) - The inventor of the compiler
+- [John Ambrose Fleming](https://en.wikipedia.org/wiki/John_Ambrose_Fleming) - The inventor of the vacuum tube
+- [Vacuum tube](https://en.wikipedia.org/wiki/Vacuum_tube) - An electronic device used to control the flow of electric current
+- [Diode](https://en.wikipedia.org/wiki/Diode) - A semiconductor device used to control the flow of electric current
+- [Lee de Forest](https://en.wikipedia.org/wiki/Lee_de_Forest) - The inventor of the triode
+- [Colossus](https://en.wikipedia.org/wiki/Colossus_computer) - 1943, The first programmable digital computer
+- [Bill Tutte](https://en.wikipedia.org/wiki/Bill_Tutte) - The codebreaker who cracked the German Lorenz cipher
+- [Tommy Flowers](https://en.wikipedia.org/wiki/Tommy_Flowers) - The engineer who built the Colossus
+- [Alan Turing](https://en.wikipedia.org/wiki/Alan_Turing) - The father of computer science
+- [The Bombe](https://en.wikipedia.org/wiki/Bombe) - 1940, A device used to break the German Enigma code
+- [Enigma machine](https://en.wikipedia.org/wiki/Enigma_machine) - 1930, A German cipher machine used by soldiers
+- [Lorenz](https://en.wikipedia.org/wiki/Lorenz_cipher) - A German cipher machine used by high-command
+- [ENIAC](https://en.wikipedia.org/wiki/ENIAC) - 1945, The first general-purpose computer
+- [John Mauchly](https://en.wikipedia.org/wiki/John_Mauchly) - The co-inventor of the ENIAC
+- [J. Presper Eckert](https://en.wikipedia.org/wiki/J._Presper_Eckert) - The co-inventor of the ENIAC
+- [Transistor](https://en.wikipedia.org/wiki/Transistor) - A semiconductor device used to amplify or switch electronic signals
+- [William Shockley](https://en.wikipedia.org/wiki/William_Shockley) - The co-inventor of the transistor
+- [John Bardeen](https://en.wikipedia.org/wiki/John_Bardeen) - The co-inventor of the transistor
+- [Walter Brattain](https://en.wikipedia.org/wiki/Walter_Houser_Brattain) - The co-inventor of the transistor
+- [Gate electrode](https://en.wikipedia.org/wiki/Gate_(transistor)) - The electrode that controls the flow of electric current
+- [Silicon Valley](https://en.wikipedia.org/wiki/Silicon_Valley) - The center of the computer industry
+
+Related Videos
+--------------
+
+### The Analytical Engine (Charles Babbage, Ada Lovelace)
+
+#### The greatest machine that never was - John Graham-Cumming - TED-Ed
+
+{{< time 12 >}} {{<badge-extra>}}
+
+{{< youtube FlfChYGv3Z4 >}}
+
+#### Babbage's Analytical Engine - Computerphile
+
+{{< time 14 >}} {{<badge-extra>}}
+
+{{< youtube 5rtKoKFGFSM >}}
+
+#### Ada Lovelace: The First Computer Programmer - Biographics
+
+{{< time 21 >}} {{<badge-extra>}}
+
+{{< youtube id=IZptxisyVqQ start=60 >}}
+
+---
+
+### Harvard Mark I 
+
+#### Supercomputer Where It All Started - Harvard Mark 1 - Major Hardware
+
+{{< time 6 >}} {{<badge-extra>}}
+
+{{< youtube cd2DV-AoCk4 >}}
+
+#### Harvard Mark I, 2022 - CS50
+
+{{< time 3 >}} {{<badge-extra>}}
+
+{{< youtube 7l8W96I7_ew >}}
+
+---
+
+### Enigma, Bombe (Alan Turing)
+
+#### How did the Enigma Machine work? - Jared Owen
+
+{{< time 20 >}} {{<badge-extra>}}
+
+{{< youtube ybkkiGtJmkM >}}
+
+
+### Lorenz and Colossus (Tommy Flowers, Bill Tutte)
+
+#### Why the Toughest Code to Break in WW2 WASN'T Enigma - The Story of the Lorenz Cipher
+
+{{< time 11 >}} {{<badge-extra>}}
+
+{{< youtube RCWgOaDOzpY >}}
+
+#### Colossus & Bletchley Park - Computerphile
+
+{{< time 9 >}} {{<badge-extra>}}
+
+{{< youtube 9HH-asvLAj4 >}}
+
+#### Colossus - The Greatest Secret in the History of Computing - The Centre for Computing History
+
+{{< time 60 >}} {{<badge-extra>}}
+
+This is not only about Colossus, but provides a lot of context, including basic cryptographic problems of the time. It's
+probably my favorite video recommended on this page.
+
+{{< youtube g2tMcMQqSbA >}}
+
+### Why Build Colossus? (Bill Tutte) - Computerphile
+
+{{< time 8 >}} {{<badge-extra>}}
+
+{{< youtube 1f82-aTYNb8 >}}
+
+---
+
+### Transistors and ENIAC (John Mauchly, J. Presper Eckert)
+
+#### Transistors - The Invention That Changed The World - Real Engineering
+
+{{< time 8 >}} {{<badge-extra>}}
+
+{{< youtube OwS9aTE2Go4 >}}
+`,
+			},
+			want: Content{
+				Title:  "Electronic Computing",
+				State:  Complete,
+				Weight: "80",
+				Slug:   "electronic-computing",
+				Body: DefaultBody{
+					MainVideo:    VideoPresent,
+					HasSummary:   true,
+					HasTopics:    true,
+					HasExercises: true,
+					RelatedVideos: RelatedVideos{
+						{
+							Badge:   "extra",
+							Issues:  nil,
+							Minutes: 12,
+							Valid:   true,
+						},
+						{
+							Badge:   "extra",
+							Issues:  nil,
+							Minutes: 14,
+							Valid:   true,
+						},
+						{
+							Badge:   "extra",
+							Issues:  nil,
+							Minutes: 21,
+							Valid:   true,
+						},
+						{
+							Badge:   "extra",
+							Issues:  nil,
+							Minutes: 6,
+							Valid:   true,
+						},
+						{
+							Badge:   "extra",
+							Issues:  nil,
+							Minutes: 3,
+							Valid:   true,
+						},
+						{
+							Badge:   "extra",
+							Issues:  nil,
+							Minutes: 20,
+							Valid:   true,
+						},
+						{
+							Badge:   "extra",
+							Issues:  nil,
+							Minutes: 11,
+							Valid:   true,
+						},
+						{
+							Badge:   "extra",
+							Issues:  nil,
+							Minutes: 9,
+							Valid:   true,
+						},
+						{
+							Badge:   "extra",
+							Issues:  nil,
+							Minutes: 60,
+							Valid:   true,
+						},
+						{
+							Badge:   "extra",
+							Issues:  nil,
+							Minutes: 8,
+							Valid:   true,
+						},
+						{
+							Badge:   "extra",
+							Issues:  nil,
+							Minutes: 8,
+							Valid:   true,
+						},
+					},
+					HasRelatedLinks:    false,
+					UsefulWithoutVideo: false,
+					SectionTitles: []string{
+						sectionMainVideo,
+						sectionSummary,
+						sectionTopics,
+						sectionRelatedVideos,
+					},
+				},
+				Audience:   All,
+				Importance: Optional,
+				Tags:       []string{"computer-science", "no-exercise"},
 			},
 		},
 	}

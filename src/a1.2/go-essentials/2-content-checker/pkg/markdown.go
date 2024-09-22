@@ -13,10 +13,13 @@ const (
 	sectionMainVideo       = "main video"
 	sectionSummary         = "summary"
 	sectionTopics          = "topics"
+	sectionCode            = "code"
+	sectionRelatedLessons  = "related lessons"
 	sectionRelatedVideos   = "related videos"
 	sectionRelatedArticles = "related articles"
 	sectionRelatedLinks    = "related links"
 	sectionExercises       = "exercises"
+	sectionNotes           = "notes"
 
 	// index
 	sectionEpisodes = "episodes"
@@ -176,6 +179,11 @@ func extractSection(body string) Sections {
 		}
 
 		if i > sectionStart && len(row) >= 3 && row[:3] == "---" {
+			// if the previous line is empty or non-existent, this is a horizontal rule, not a header
+			if i == 0 || len(rows[i-1]) == 0 {
+				continue
+			}
+
 			content := strings.Trim(strings.Join(rows[sectionStart:i-1], EOL), " \t\n")
 			if len(content) > 0 {
 				sections = append(sections, Section{Title: currentSection, Content: content})
@@ -413,7 +421,7 @@ func sectionsToDefaultBody(sections Sections, tags []string) DefaultBody {
 		HasRelatedLinks:    hasRelatedLinks,
 		HasExercises:       hasExercises,
 		UsefulWithoutVideo: usefulWithoutVideo,
-		Titles:             sections.Titles(),
+		SectionTitles:      sections.Titles(),
 	}
 }
 
