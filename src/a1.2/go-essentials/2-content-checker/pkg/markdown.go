@@ -31,7 +31,7 @@ const markdownHeaderLength = 3
 
 func ParseMarkdown(rawContent string) (Content, error) {
 	if len(rawContent) < markdownHeaderLength*2 {
-		return Content{State: Unknown}, nil
+		return Content{}, nil
 	}
 
 	// Convert DOS/Windows line endings (\r\n) into Linux/Unix line endings
@@ -43,16 +43,27 @@ func ParseMarkdown(rawContent string) (Content, error) {
 	}
 
 	sections := extractSection(body)
+	tags := getHeaderValues(header, "tags", nil)
 
+	var content Content
 	if sections.Has(sectionEpisodes) {
-		return NewIndexContent(header, sections), nil
+		content.Body = sectionsToIndexBody(sections)
+	} else if sections.Has(sectionDescription) {
+		content.Body = sectionsToPracticeBody(sections)
+	} else {
+		content.Body = sectionsToDefaultBody(sections, tags)
 	}
 
-	if sections.Has(sectionDescription) {
-		return NewPracticeContent(header, sections), nil
-	}
+	content.Slug = getHeaderValue(header, "slug", "")
+	content.Weight = getHeaderValue(header, "weight", "")
+	content.Title = getHeaderValue(header, "title", "")
+	content.State = State(getHeaderValue(header, "state", ""))
+	content.Audience = Audience(getHeaderValue(header, "audience", ""))
+	content.Importance = Importance(getHeaderValue(header, "audienceImportance", ""))
+	content.OutsideImportance = Importance(getHeaderValue(header, "outsideImportance", ""))
+	content.Tags = tags
 
-	return NewDefaultContent(header, sections), nil
+	return content, nil
 }
 
 func splitMarkdown(in string) (string, string, error) {
@@ -64,51 +75,6 @@ func splitMarkdown(in string) (string, string, error) {
 	}
 
 	return "", "", errors.New("could not split markdown")
-}
-
-func NewIndexContent(header string, sections Sections) Content {
-	title := getHeaderValue(header, "title", "")
-	body := sectionsToIndexBody(sections)
-	state := State(getHeaderValue(header, "state", string(Unknown)))
-
-	return Content{
-		Title: title,
-		State: state,
-		Body:  body,
-	}
-}
-
-func NewPracticeContent(header string, sections Sections) Content {
-	title := getHeaderValue(header, "title", "")
-	state := State(getHeaderValue(header, "state", string(Unknown)))
-	slug := getHeaderValue(header, "slug", "")
-	weight := getHeaderValue(header, "weight", "")
-	body := sectionsToPracticeBody(sections)
-
-	return Content{
-		Title:  title,
-		State:  state,
-		Body:   body,
-		Slug:   slug,
-		Weight: weight,
-	}
-}
-
-func NewDefaultContent(header string, sections Sections) Content {
-	title := getHeaderValue(header, "title", "")
-	state := NewState(getHeaderValue(header, "state", string(Unknown)))
-	slug := getHeaderValue(header, "slug", "")
-	weight := getHeaderValue(header, "weight", "")
-	tags := getHeaderValues(header, "tags", nil)
-	defaultBody := sectionsToDefaultBody(sections, tags)
-
-	return Content{
-		Title:  title,
-		State:  state,
-		Body:   defaultBody,
-		Slug:   slug,
-		Weight: weight,
-	}
 }
 
 var regexHeader = regexp.MustCompile(`^(\S+)\s*=\s*(.*)$`)

@@ -32,9 +32,7 @@ func TestParseMarkdown(t *testing.T) {
 			args: args{
 				rawContent: ``,
 			},
-			want: Content{
-				State: Unknown,
-			},
+			want: Content{},
 		},
 		{
 			name: "title-only",
@@ -45,7 +43,6 @@ title = "Prepare"
 			},
 			want: Content{
 				Title: "Prepare",
-				State: Unknown,
 				Body: DefaultBody{
 					MainVideo: VideoProblem,
 					Titles:    []string{},
@@ -75,9 +72,7 @@ state = "incomplete"
 			args: args{
 				rawContent: ``,
 			},
-			want: Content{
-				State: Unknown,
-			},
+			want: Content{},
 		},
 		{
 			name: "title-only-chapter",
@@ -88,7 +83,6 @@ title = "Prepare"
 			},
 			want: Content{
 				Title: "Prepare",
-				State: Unknown,
 				Body: DefaultBody{
 					MainVideo: VideoProblem,
 					Titles:    []string{},
@@ -124,7 +118,6 @@ Episodes
 			},
 			want: Content{
 				Title: "Prepare",
-				State: Unknown,
 				Body: &IndexBody{
 					HasEpisodes:   true,
 					CompleteState: Incomplete,
@@ -416,6 +409,9 @@ on your choice of text editor. :D
 						sectionMainVideo,
 					},
 				},
+				Audience:   All,
+				Importance: Irrelevant,
+				Tags:       []string{"no-exercise", "fun", "vim", "vscode", "goland", "jetbrains"},
 			},
 		},
 		{
@@ -517,6 +513,9 @@ Example output:
 					HasRecommendedChallenges: true,
 					HasAdditionalChallenges:  true,
 				},
+				Audience:   All,
+				Importance: Important,
+				Tags:       []string{"vim", "practice"},
 			},
 		},
 		{
@@ -564,6 +563,9 @@ Related Links
 					UsefulWithoutVideo: true,
 					Titles:             []string{sectionMainVideo, sectionRelatedLinks},
 				},
+				Audience:   All,
+				Importance: Relevant,
+				Tags:       []string{"career", "learning", "no-exercise", "useful-without-video"},
 			},
 		},
 	}

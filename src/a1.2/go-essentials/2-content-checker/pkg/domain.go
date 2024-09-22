@@ -19,7 +19,6 @@ const (
 type State string
 
 const (
-	Unknown    State = "unknown"
 	Incomplete State = "incomplete"
 	Complete   State = "complete"
 	Stub       State = "stub"
@@ -35,7 +34,7 @@ func NewState(content string) State {
 		return Stub
 	}
 
-	return Unknown
+	return ""
 }
 
 type Badge string
@@ -50,6 +49,64 @@ const (
 	Unchecked   Badge = "unchecked"
 	NoEmbed     Badge = "no-embed"
 )
+
+type Audience string
+
+const (
+	All              Audience = "all"
+	AllProfessionals Audience = "all professionals"
+	LinuxUsers       Audience = "Linux users"
+	WindowsUsers     Audience = "Windows users"
+	MacUsers         Audience = "Mac users"
+	AllDevelopers    Audience = "all developers"
+	WebDevelopers    Audience = "web developers"
+	MobileDevelopers Audience = "mobile developers"
+	GameDevelopers   Audience = "game developers"
+	SysAdmins        Audience = "sysadmins"
+)
+
+var validAudiences = map[Audience]struct{}{
+	All:              {},
+	AllProfessionals: {},
+	LinuxUsers:       {},
+	WindowsUsers:     {},
+	MacUsers:         {},
+	AllDevelopers:    {},
+	WebDevelopers:    {},
+	MobileDevelopers: {},
+	GameDevelopers:   {},
+	SysAdmins:        {},
+}
+
+type Importance string
+
+const (
+	Critical   Importance = "critical"
+	Essential  Importance = "essential"
+	Important  Importance = "important"
+	Relevant   Importance = "relevant"
+	Optional   Importance = "optional"
+	Irrelevant Importance = "irrelevant"
+)
+
+func (i Importance) Level() int {
+	switch i {
+	case Critical:
+		return 5
+	case Essential:
+		return 4
+	case Important:
+		return 3
+	case Relevant:
+		return 2
+	case Optional:
+		return 1
+	case Irrelevant:
+		return 0
+	}
+
+	return -1
+}
 
 type MainVideo string
 
@@ -215,11 +272,15 @@ type Body interface {
 }
 
 type Content struct {
-	Title  string
-	State  State
-	Body   Body
-	Slug   string
-	Weight string
+	Title             string
+	State             State
+	Body              Body
+	Slug              string
+	Weight            string
+	Audience          Audience
+	Importance        Importance
+	OutsideImportance Importance
+	Tags              []string
 }
 
 func (c Content) GetIssues(filePath string) []string {
@@ -230,6 +291,34 @@ func (c Content) GetIssues(filePath string) []string {
 		filename := filepath.Base(filePath)
 		if !strings.HasPrefix(filename, c.Weight) {
 			issues = append(issues, "file name is not prefixed with weight: '"+filename+"', prefix: '"+c.Weight+"'")
+		}
+	}
+
+	if _, exists := validAudiences[c.Audience]; !exists {
+		issues = append(issues, "invalid audience: "+string(c.Audience))
+	}
+
+	if c.Importance.Level() < c.OutsideImportance.Level() {
+		issues = append(issues, "importance is lower than outside importance")
+	}
+
+	if c.OutsideImportance == "" && c.Audience != All {
+		issues = append(issues, "outside importance is invalid")
+	}
+
+	if c.Audience == All && c.OutsideImportance != "" {
+		issues = append(issues, "audience is 'all', outside importance must be empty")
+	}
+
+	for _, tag := range c.Tags {
+		if tag == "unsorted" {
+			issues = append(issues, "tag is 'unsorted'")
+		}
+		if strings.ToLower(tag) != tag {
+			issues = append(issues, "tag is not lowercase: "+tag)
+		}
+		if strings.Replace(tag, " ", "", 1) != tag {
+			issues = append(issues, "tag contains spaces: "+tag)
 		}
 	}
 
@@ -270,7 +359,7 @@ func (p Page) String() string {
 		color = cliGreen
 	case Incomplete:
 		color = cliYellow
-	case Unknown:
+	default:
 		color = cliRed
 	}
 
