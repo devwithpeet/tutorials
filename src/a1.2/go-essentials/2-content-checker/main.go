@@ -48,7 +48,7 @@ func main() {
 		Errors(count, courses)
 
 	case StatsCommand:
-		Stats(courses)
+		courses.Stats()
 
 	default:
 		panic("unknown command: " + string(action))
@@ -143,35 +143,4 @@ func Errors(count int, courses pkg.Courses) {
 	if errorsFound {
 		os.Exit(1)
 	}
-}
-
-func Stats(courses pkg.Courses) {
-	fmt.Println("Stats")
-
-	var total, totalStub, totalIncomplete, totalComplete, totalErrors int
-
-	for _, course := range courses {
-		courseAll, courseStub, courseIncomplete, courseComplete, courseErrors := course.Stats()
-
-		fmt.Println("Course:", course.Title)
-		fmt.Println("  Total:", courseAll)
-		fmt.Println("  Stub:", courseStub)
-		fmt.Println("  Incomplete:", courseIncomplete)
-		fmt.Println("  Complete:", courseComplete)
-		fmt.Println("  Errors:", courseErrors)
-		fmt.Println()
-
-		total += courseAll
-		totalStub += courseStub
-		totalIncomplete += courseIncomplete
-		totalComplete += courseComplete
-		totalErrors += courseErrors
-	}
-
-	fmt.Println("Total:", total)
-	fmt.Println("  Stub:", totalStub)
-	fmt.Println("  Incomplete:", totalIncomplete)
-	fmt.Println("  Complete:", totalComplete)
-	fmt.Println("  Errors:", totalErrors)
-
 }
