@@ -338,3 +338,39 @@ func Test_isOrderedCorrectly(t *testing.T) {
 		})
 	}
 }
+
+func Test_slugify(t *testing.T) {
+	type args struct {
+		title string
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "complex",
+			args: args{title: "CQRS - Command Query Responsibility Segregation?"},
+			want: "cqrs-command-query-responsibility-segregation",
+		},
+		{
+			name: "c#",
+			args: args{title: "C# Basics"},
+			want: "c-sharp-basics",
+		},
+		{
+			name: ".net",
+			args: args{title: "About the .NET Framework?"},
+			want: "about-the-dot-net-framework",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// execute
+			got := slugify(tt.args.title)
+
+			// verify
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}

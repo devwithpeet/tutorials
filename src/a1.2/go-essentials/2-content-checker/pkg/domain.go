@@ -3,6 +3,7 @@ package pkg
 import (
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -289,14 +290,33 @@ type Content struct {
 	Tags              []string
 }
 
+var regexDashes = regexp.MustCompile(`-+-`)
+var regexSlugReduce = regexp.MustCompile(`[:,/?! ]`)
+
+func slugify(title string) string {
+	title = strings.ToLower(title)
+	title = strings.Replace(title, "#", "-sharp-", -1)
+	title = strings.Replace(title, ".", "-dot-", -1)
+	title = regexSlugReduce.ReplaceAllString(title, "-")
+	title = regexDashes.ReplaceAllString(title, "-")
+
+	return strings.Trim(title, "-")
+}
+
 func (c Content) GetIssues(filePath string) []string {
 	issues := c.Body.GetIssues(c.State)
 
-	_, isDefaultBody := c.Body.(*DefaultBody)
-	if isDefaultBody {
+	_, isIndex := c.Body.(*IndexBody)
+	if !isIndex {
 		filename := filepath.Base(filePath)
 		if !strings.HasPrefix(filename, c.Weight) {
-			issues = append(issues, "file name is not prefixed with weight: '"+filename+"', prefix: '"+c.Weight+"'")
+			issues = append(issues, "file name is not prefixed with the weight of the page")
+		}
+		if fmt.Sprintf("%s-%s.md", c.Weight, c.Slug) != filename {
+			issues = append(issues, "file name does not match the dash joined weight and slug")
+		}
+		if c.Slug != slugify(c.Title) {
+			issues = append(issues, "slug does not match the lowercase title with dashes")
 		}
 	}
 
