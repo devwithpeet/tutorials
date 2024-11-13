@@ -42,29 +42,31 @@ const (
 type Audience string
 
 const (
-	All              Audience = "all"
-	AllProfessionals Audience = "all professionals"
-	LinuxUsers       Audience = "Linux users"
-	WindowsUsers     Audience = "Windows users"
-	MacUsers         Audience = "Mac users"
-	AllDevelopers    Audience = "all developers"
-	WebDevelopers    Audience = "web developers"
-	MobileDevelopers Audience = "mobile developers"
-	GameDevelopers   Audience = "game developers"
-	SysAdmins        Audience = "sysadmins"
+	All               Audience = "all"
+	AllProfessionals  Audience = "all professionals"
+	LinuxUsers        Audience = "Linux users"
+	WindowsUsers      Audience = "Windows users"
+	MacUsers          Audience = "Mac users"
+	AllDevelopers     Audience = "all developers"
+	WebDevelopers     Audience = "web developers"
+	MobileDevelopers  Audience = "mobile developers"
+	DesktopDevelopers Audience = "desktop developers"
+	GameDevelopers    Audience = "game developers"
+	SysAdmins         Audience = "sysadmins"
 )
 
 var validAudiences = map[Audience]struct{}{
-	All:              {},
-	AllProfessionals: {},
-	LinuxUsers:       {},
-	WindowsUsers:     {},
-	MacUsers:         {},
-	AllDevelopers:    {},
-	WebDevelopers:    {},
-	MobileDevelopers: {},
-	GameDevelopers:   {},
-	SysAdmins:        {},
+	All:               {},
+	AllProfessionals:  {},
+	LinuxUsers:        {},
+	WindowsUsers:      {},
+	MacUsers:          {},
+	AllDevelopers:     {},
+	WebDevelopers:     {},
+	MobileDevelopers:  {},
+	DesktopDevelopers: {},
+	GameDevelopers:    {},
+	SysAdmins:         {},
 }
 
 type Importance string
@@ -147,16 +149,17 @@ type DefaultBody struct {
 }
 
 var defaultBodySectionMap = map[string]int{
-	sectionMainVideo:       0,
-	sectionSummary:         1,
-	sectionTopics:          2,
-	sectionCode:            3,
-	sectionRelatedLessons:  4,
-	sectionRelatedVideos:   5,
-	sectionRelatedArticles: 6,
-	sectionRelatedLinks:    7,
-	sectionExercises:       8,
-	sectionNotes:           9,
+	sectionRoot:            0,
+	sectionMainVideo:       1,
+	sectionSummary:         2,
+	sectionTopics:          3,
+	sectionCode:            4,
+	sectionRelatedLessons:  5,
+	sectionRelatedVideos:   6,
+	sectionRelatedArticles: 7,
+	sectionRelatedLinks:    8,
+	sectionExercises:       9,
+	sectionNotes:           10,
 }
 
 func isOrderedCorrectly(goldenMap map[string]int, givenSlice []string) (string, bool) {
@@ -194,12 +197,14 @@ func (db DefaultBody) GetIssues(state State) []string {
 
 	switch db.MainVideo {
 	case VideoReallyMissing:
-		if db.RelatedVideos.Has(Alternative) || db.UsefulWithoutVideo {
+		if db.UsefulWithoutVideo {
+			issues = append(issues, "main video is NOT REALLY missing (Remove the useful-without-video tag?")
+		} else if db.UsefulWithoutVideo {
 			issues = append(issues, "main video is NOT REALLY missing")
 		}
 	case VideoMissing:
 		if !db.RelatedVideos.Has(Alternative) && !db.UsefulWithoutVideo {
-			issues = append(issues, "main video is REALLY missing")
+			issues = append(issues, "main video is REALLY missing (Add a useful-without-video tag?")
 		}
 	}
 
@@ -292,11 +297,13 @@ type Content struct {
 
 var regexDashes = regexp.MustCompile(`-+-`)
 var regexSlugReduce = regexp.MustCompile(`[:,/?! ]`)
+var regexSlugRemove = regexp.MustCompile(`[.'"/\\]`)
 
 func slugify(title string) string {
 	title = strings.ToLower(title)
 	title = strings.Replace(title, "#", "-sharp-", -1)
-	title = strings.Replace(title, ".", "-dot-", -1)
+	// title = strings.Replace(title, ".", "", -1)
+	title = regexSlugRemove.ReplaceAllString(title, "")
 	title = regexSlugReduce.ReplaceAllString(title, "-")
 	title = regexDashes.ReplaceAllString(title, "-")
 
@@ -316,7 +323,7 @@ func (c Content) GetIssues(filePath string) []string {
 			issues = append(issues, "file name does not match the dash joined weight and slug")
 		}
 		if c.Slug != slugify(c.Title) {
-			issues = append(issues, "slug does not match the lowercase title with dashes")
+			issues = append(issues, fmt.Sprintf("slug does not match the lowercase title with dashes (`%s`, `%s`)", c.Slug, slugify(c.Title)))
 		}
 	}
 

@@ -10,6 +10,7 @@ import (
 
 const (
 	// default
+	sectionRoot            = "root"
 	sectionMainVideo       = "main video"
 	sectionSummary         = "summary"
 	sectionTopics          = "topics"
@@ -49,9 +50,9 @@ func ParseMarkdown(rawContent string) (Content, error) {
 	tags := getHeaderValues(header, "tags", nil)
 
 	var content Content
-	if sections.Has(sectionEpisodes) {
+	if sections.HasNonEmpty(sectionEpisodes) {
 		content.Body = sectionsToIndexBody(sections)
-	} else if sections.Has(sectionDescription) {
+	} else if sections.HasNonEmpty(sectionDescription) {
 		content.Body = sectionsToPracticeBody(sections)
 	} else {
 		content.Body = sectionsToDefaultBody(sections, tags)
@@ -128,10 +129,10 @@ type Section struct {
 
 type Sections []Section
 
-func (s Sections) Has(title string) bool {
+func (s Sections) HasNonEmpty(title string) bool {
 	for _, section := range s {
 		if section.Title == title {
-			return true
+			return len(section.Content) > 0
 		}
 	}
 
@@ -167,9 +168,7 @@ func extractSection(body string) Sections {
 	for i, row := range rows {
 		if len(row) >= 3 && row[:3] == "## " {
 			content := strings.Trim(strings.Join(rows[sectionStart:i], EOL), " \t\n")
-			if len(content) > 0 {
-				sections = append(sections, Section{Title: currentSection, Content: content})
-			}
+			sections = append(sections, Section{Title: currentSection, Content: content})
 
 			sectionStart = i + 1
 
@@ -185,9 +184,7 @@ func extractSection(body string) Sections {
 			}
 
 			content := strings.Trim(strings.Join(rows[sectionStart:i-1], EOL), " \t\n")
-			if len(content) > 0 {
-				sections = append(sections, Section{Title: currentSection, Content: content})
-			}
+			sections = append(sections, Section{Title: currentSection, Content: content})
 
 			sectionStart = i + 1
 
@@ -197,11 +194,14 @@ func extractSection(body string) Sections {
 		}
 	}
 
-	if len(rows) > sectionStart {
+	if currentSection != "root" {
 		content := strings.Trim(strings.Join(rows[sectionStart:], EOL), " \t\n")
-		if len(content) > 0 {
-			sections = append(sections, Section{Title: currentSection, Content: content})
-		}
+		sections = append(sections, Section{Title: currentSection, Content: content})
+	}
+
+	// Remove the root section if it's empty
+	if len(sections) > 0 && sections[0].Content == "" {
+		sections = sections[1:]
 	}
 
 	return sections
@@ -209,7 +209,7 @@ func extractSection(body string) Sections {
 
 var regexMissing = regexp.MustCompile(`{{<\s*main-missing\s*>}}`)
 var regexReallyMissing = regexp.MustCompile(`{{<\s*main-really-missing\s*>}}`)
-var regexYoutube = regexp.MustCompile(`{{<\s*youtube\s+([^>]*)\s*>}}`)
+var regexYoutube = regexp.MustCompile(`{{<\s*youtube(-button)?\s+([^>]*)\s*>}}`)
 
 func ExtractMainVideo(content string) MainVideo {
 	matchCount := 0
@@ -391,10 +391,10 @@ const (
 )
 
 func sectionsToDefaultBody(sections Sections, tags []string) DefaultBody {
-	hasSummary := sections.Has(sectionSummary)
-	hasTopics := sections.Has(sectionTopics)
-	hasRelatedLinks := sections.Has(sectionRelatedLinks)
-	hasExercises := sections.Has(sectionExercises)
+	hasSummary := sections.HasNonEmpty(sectionSummary)
+	hasTopics := sections.HasNonEmpty(sectionTopics)
+	hasRelatedLinks := sections.HasNonEmpty(sectionRelatedLinks)
+	hasExercises := sections.HasNonEmpty(sectionExercises)
 
 	mainVideo := ExtractMainVideo(sections.Get(sectionMainVideo))
 	relatedVideos := ExtractRelatedVideos(sections.Get(sectionRelatedVideos))
@@ -427,15 +427,15 @@ func sectionsToDefaultBody(sections Sections, tags []string) DefaultBody {
 
 func sectionsToIndexBody(sections Sections) *IndexBody {
 	return &IndexBody{
-		HasEpisodes:   sections.Has(sectionEpisodes),
+		HasEpisodes:   sections.HasNonEmpty(sectionEpisodes),
 		CompleteState: Incomplete,
 	}
 }
 
 func sectionsToPracticeBody(sections Sections) *PracticeBody {
 	return &PracticeBody{
-		HasDescription:           sections.Has(sectionDescription),
-		HasRecommendedChallenges: sections.Has(sectionRecommendedChallenges),
-		HasAdditionalChallenges:  sections.Has(sectionAdditionalChallenges),
+		HasDescription:           sections.HasNonEmpty(sectionDescription),
+		HasRecommendedChallenges: sections.HasNonEmpty(sectionRecommendedChallenges),
+		HasAdditionalChallenges:  sections.HasNonEmpty(sectionAdditionalChallenges),
 	}
 }

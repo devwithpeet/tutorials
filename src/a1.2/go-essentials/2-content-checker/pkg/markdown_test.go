@@ -194,7 +194,14 @@ Exercises
 					HasExercises:    true,
 					HasRelatedLinks: true,
 					RelatedVideos:   RelatedVideos{},
-					SectionTitles:   []string{sectionSummary, sectionTopics, sectionRelatedVideos, sectionRelatedLinks, sectionExercises},
+					SectionTitles: []string{
+						sectionSummary,
+						sectionMainVideo,
+						sectionTopics,
+						sectionRelatedVideos,
+						sectionRelatedLinks,
+						sectionExercises,
+					},
 				},
 			},
 		},
@@ -808,6 +815,113 @@ probably my favorite video recommended on this page.
 				Audience:   All,
 				Importance: Optional,
 				Tags:       []string{"computer-science", "no-exercise"},
+			},
+		},
+		{
+			name: "main-in-wrong-order",
+			args: args{
+				rawContent: `+++
+title = 'Advanced Linux Commands'
+date = 2024-06-28T21:39:29+02:00
+weight = 40
+state = 'incomplete'
+draft = false
+slug = 'advanced-linux-commands'
+tags = ["linux", "cli"]
+disableMermaid = true
+disableOpenapi = true
+audience = "all"
+audienceImportance = "important"
++++
+
+Summary
+-------
+
+Topics
+------
+
+- [which](https://linux.die.net/man/1/which)
+- [ping](https://linux.die.net/man/1/ping)
+- [whoami](https://linux.die.net/man/1/whoami)
+- [whatis](https://linux.die.net/man/1/whatis)
+- [find](https://linux.die.net/man/1/find)
+- [uname](https://linux.die.net/man/1/uname)
+- [lsb_release](https://linux.die.net/man/1/lsb_release)
+- [curl](https://linux.die.net/man/1/curl)
+- [wget](https://linux.die.net/man/1/wget)
+- [httping](https://linux.die.net/man/1/httping)
+- [alias](https://linux.die.net/man/1/alias)
+- [unalias](https://linux.die.net/man/1/unalias)
+- [wc](https://linux.die.net/man/1/wc)
+- [cut](https://linux.die.net/man/1/cut)
+- [awk](https://linux.die.net/man/1/awk)
+- [sed](https://linux.die.net/man/1/sed)
+- [pgrep](https://linux.die.net/man/1/pgrep)
+- [fuser](https://linux.die.net/man/1/fuser)
+- [rsync](https://linux.die.net/man/1/rsync)
+- [tar](https://linux.die.net/man/1/tar)
+- [gzip](https://linux.die.net/man/1/gzip)
+- [lsof](https://linux.die.net/man/1/lsof)
+- [screen](https://linux.die.net/man/1/screen)
+
+Main Video
+----------
+
+Related Videos
+--------------
+
+### Linux Command Line for Beginners
+
+{{< time 59 >}} {{<badge-alternative>}}
+
+{{< youtube 16d2lHc0Pe8 >}}
+
+### 50 MUST KNOW Linux Commands (in under 15 minutes)
+
+{{< time 14 >}} {{<badge-alternative>}}
+
+{{< youtube nzjkbQNmXAE >}}
+
+Exercises
+---------
+
+`,
+			},
+			want: Content{
+				Title:  "Advanced Linux Commands",
+				State:  Incomplete,
+				Weight: "40",
+				Slug:   "advanced-linux-commands",
+				Body: DefaultBody{
+					MainVideo:    VideoProblem,
+					HasSummary:   false,
+					HasTopics:    true,
+					HasExercises: false,
+					RelatedVideos: RelatedVideos{
+						{
+							Badge:   Alternative,
+							Minutes: 59,
+							Valid:   true,
+						},
+						{
+							Badge:   Alternative,
+							Minutes: 14,
+							Valid:   true,
+						},
+					},
+					HasRelatedLinks: false,
+					SectionTitles: []string{
+						sectionSummary,
+						sectionTopics,
+						sectionMainVideo,
+						sectionRelatedVideos,
+						sectionExercises,
+					},
+					UsefulWithoutVideo: false,
+				},
+				Audience:   All,
+				Importance: Important,
+				Tags:       []string{"linux", "cli"},
 			},
 		},
 	}

@@ -12,21 +12,24 @@ import (
 
 type Command string
 
+const Version = "0.1.1"
+
 const (
-	PrintCommand  Command = "print"
-	ErrorsCommand Command = "errors"
-	StatsCommand  Command = "stats"
+	PrintCommand   Command = "print"
+	ErrorsCommand  Command = "errors"
+	StatsCommand   Command = "stats"
+	VersionCommand Command = "version"
 )
 
 func main() {
-	root := "."
+	action := PrintCommand
 	if len(os.Args) > 1 {
-		root = os.Args[1]
+		action = Command(os.Args[1])
 	}
 
-	action := PrintCommand
+	root := "."
 	if len(os.Args) > 2 {
-		action = Command(os.Args[2])
+		root = os.Args[2]
 	}
 
 	// collect markdown files
@@ -41,6 +44,9 @@ func main() {
 	Prepare(courses)
 
 	switch action {
+	case VersionCommand:
+		fmt.Println("Version:", Version)
+
 	case PrintCommand:
 		Print(count, courses)
 
@@ -61,7 +67,7 @@ func findFiles(root string) ([]string, error) {
 	return filepath.Glob(pattern)
 }
 
-const maxErrors = 10
+const maxErrors = 100
 
 func CrawlMarkdownFiles(matches []string, maxErrors int) (pkg.Courses, int) {
 	if maxErrors < 0 {
