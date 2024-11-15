@@ -387,7 +387,9 @@ func extractRelatedVideo(content string) RelatedVideo {
 
 const (
 	tagUsefulWithoutVideo = "useful-without-video"
+	tagSlugForced         = "slug-forced"
 	tagNoExercise         = "no-exercise"
+	tagProjects           = "projects"
 )
 
 func sectionsToDefaultBody(sections Sections, tags []string) DefaultBody {
@@ -404,12 +406,20 @@ func sectionsToDefaultBody(sections Sections, tags []string) DefaultBody {
 	}
 
 	usefulWithoutVideo := false
+	isSlugForced := false
+	isProject := false
 	for _, tag := range tags {
 		if tag == tagUsefulWithoutVideo {
 			usefulWithoutVideo = true
 		}
 		if tag == tagNoExercise {
 			hasExercises = true
+		}
+		if tag == tagSlugForced {
+			isSlugForced = true
+		}
+		if tag == tagProjects {
+			isProject = true
 		}
 	}
 
@@ -421,6 +431,8 @@ func sectionsToDefaultBody(sections Sections, tags []string) DefaultBody {
 		HasRelatedLinks:    hasRelatedLinks,
 		HasExercises:       hasExercises,
 		UsefulWithoutVideo: usefulWithoutVideo,
+		SlugForced:         isSlugForced,
+		Project:            isProject,
 		SectionTitles:      sections.Titles(),
 	}
 }

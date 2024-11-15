@@ -145,6 +145,8 @@ type DefaultBody struct {
 	RelatedVideos      RelatedVideos
 	HasRelatedLinks    bool
 	UsefulWithoutVideo bool
+	SlugForced         bool
+	Project            bool
 	SectionTitles      []string
 }
 
@@ -216,6 +218,16 @@ func (db DefaultBody) GetIssues(state State) []string {
 		issues = append(issues, "sections are not in the correct order, first out of order: "+item)
 	}
 
+	if !db.Project {
+		if !db.HasSummary {
+			issues = append(issues, "summary section is missing")
+		}
+
+		if !db.HasTopics {
+			issues = append(issues, "topics section is missing")
+		}
+	}
+
 	return issues
 }
 
@@ -233,6 +245,10 @@ func (db DefaultBody) CalculateState() State {
 
 func (db DefaultBody) IsIndex() bool {
 	return false
+}
+
+func (db DefaultBody) IsSlugForced() bool {
+	return db.SlugForced
 }
 
 type IndexBody struct {
@@ -254,6 +270,10 @@ func (ib *IndexBody) CalculateState() State {
 
 func (ib *IndexBody) SetCompleteState(state State) {
 	ib.CompleteState = state
+}
+
+func (ib *IndexBody) IsSlugForced() bool {
+	return false
 }
 
 type PracticeBody struct {
@@ -278,9 +298,14 @@ func (pb PracticeBody) CalculateState() State {
 	return Incomplete
 }
 
+func (pb PracticeBody) IsSlugForced() bool {
+	return false
+}
+
 type Body interface {
 	GetIssues(state State) []string
 	CalculateState() State
+	IsSlugForced() bool
 }
 
 type Content struct {
@@ -322,7 +347,7 @@ func (c Content) GetIssues(filePath string) []string {
 		if fmt.Sprintf("%s-%s.md", c.Weight, c.Slug) != filename {
 			issues = append(issues, "file name does not match the dash joined weight and slug")
 		}
-		if c.Slug != slugify(c.Title) {
+		if !c.Body.IsSlugForced() && c.Slug != slugify(c.Title) {
 			issues = append(issues, fmt.Sprintf("slug does not match the lowercase title with dashes (`%s`, `%s`)", c.Slug, slugify(c.Title)))
 		}
 	}
@@ -460,12 +485,26 @@ func (c *Chapter) Prepare() {
 	indexPage.SetCompleteState(Complete)
 }
 
-func (c *Chapter) String() string {
+func (c *Chapter) String(statesAllowed map[State]struct{}, printIndex, printNonIndex bool) string {
 	result := fmt.Sprintln("  ", c.Title)
 
 	c.Prepare()
 
 	for _, page := range c.Pages {
+		if !printNonIndex && !strings.HasSuffix(page.FilePath, "_index.md") {
+			continue
+		}
+
+		if !printIndex && strings.HasSuffix(page.FilePath, "_index.md") {
+			continue
+		}
+
+		if statesAllowed != nil {
+			if _, ok := statesAllowed[page.GetState()]; !ok {
+				continue
+			}
+		}
+
 		result += page.String()
 	}
 
@@ -506,11 +545,11 @@ func (c Course) Prepare() {
 	}
 }
 
-func (c Course) String() string {
+func (c Course) String(statesAllowed map[State]struct{}, printIndex, printNonIndex bool) string {
 	result := fmt.Sprintln(c.Title)
 
 	for _, chapter := range c.Chapters {
-		result += chapter.String()
+		result += chapter.String(statesAllowed, printIndex, printNonIndex)
 	}
 
 	return result

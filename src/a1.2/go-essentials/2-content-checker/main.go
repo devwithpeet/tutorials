@@ -12,7 +12,7 @@ import (
 
 type Command string
 
-const Version = "0.1.1"
+const Version = "0.1.4"
 
 const (
 	PrintCommand   Command = "print"
@@ -48,7 +48,39 @@ func main() {
 		fmt.Println("Version:", Version)
 
 	case PrintCommand:
-		Print(count, courses)
+		statesAllowed := map[pkg.State]struct{}{
+			pkg.Complete:   {},
+			pkg.Incomplete: {},
+			pkg.Stub:       {},
+		}
+
+		printIndex := false
+		printNonIndex := true
+
+		if len(os.Args) > 3 {
+			for _, arg := range os.Args[3:] {
+				switch arg {
+				case "--without-non-index":
+					printNonIndex = false
+				case "--with-index":
+					printIndex = true
+				case "complete":
+					statesAllowed = map[pkg.State]struct{}{
+						pkg.Complete: {},
+					}
+				case "incomplete":
+					statesAllowed = map[pkg.State]struct{}{
+						pkg.Incomplete: {},
+					}
+				case "stub":
+					statesAllowed = map[pkg.State]struct{}{
+						pkg.Stub: {},
+					}
+				}
+			}
+		}
+
+		Print(count, courses, statesAllowed, printIndex, printNonIndex)
 
 	case ErrorsCommand:
 		Errors(count, courses)
@@ -67,7 +99,7 @@ func findFiles(root string) ([]string, error) {
 	return filepath.Glob(pattern)
 }
 
-const maxErrors = 100
+const maxErrors = 10
 
 func CrawlMarkdownFiles(matches []string, maxErrors int) (pkg.Courses, int) {
 	if maxErrors < 0 {
@@ -122,11 +154,11 @@ func Prepare(courses pkg.Courses) {
 	}
 }
 
-func Print(count int, courses pkg.Courses) {
+func Print(count int, courses pkg.Courses, statesAllowed map[pkg.State]struct{}, printIndex, printNonIndex bool) {
 	fmt.Println("Processed", count, "markdown files")
 
 	for _, course := range courses {
-		fmt.Print(course.String())
+		fmt.Print(course.String(statesAllowed, printIndex, printNonIndex))
 	}
 }
 
