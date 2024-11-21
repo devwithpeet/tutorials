@@ -232,8 +232,10 @@ func (db DefaultBody) GetIssues(state State) []string {
 }
 
 func (db DefaultBody) CalculateState() State {
-	if db.MainVideo == VideoPresent && db.HasSummary && db.HasExercises {
-		return Complete
+	if db.HasSummary && db.HasExercises && !db.RelatedVideos.Has(Unchecked) {
+		if db.MainVideo == VideoPresent || db.UsefulWithoutVideo && db.MainVideo != VideoMissing && db.MainVideo != VideoReallyMissing {
+			return Complete
+		}
 	}
 
 	if db.MainVideo == VideoPresent || db.RelatedVideos.Has(Alternative) || db.UsefulWithoutVideo {
