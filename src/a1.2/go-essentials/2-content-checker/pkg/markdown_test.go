@@ -386,7 +386,7 @@ tags = ["no-exercise", "fun", "vim", "vscode", "goland", "jetbrains"]
 disableMermaid = true
 disableOpenapi = true
 audience = 'all'
-audienceImportance = 'irrelevant'
+audienceImportance = 'optional'
 +++
 
 Main Video
@@ -417,7 +417,7 @@ on your choice of text editor. :D
 					},
 				},
 				Audience:   All,
-				Importance: Irrelevant,
+				Importance: Optional,
 				Tags:       []string{"no-exercise", "fun", "vim", "vscode", "goland", "jetbrains"},
 			},
 		},
@@ -660,7 +660,7 @@ Related Videos
 
 ---
 
-### Harvard Mark I 
+### Harvard Mark I
 
 #### Supercomputer Where It All Started - Harvard Mark 1 - Major Hardware
 
@@ -978,7 +978,7 @@ func TestExtractRelatedVideos(t *testing.T) {
 				content: `### This is it
 {{< time 5 >}} {{<time  12>}}
 
-{{<  badge-extra   >}} {{<badge-extra>}} 
+{{<  badge-extra   >}} {{<badge-extra>}}
 
 {{< youtube abc >}} {{<youtube def>}}
 `,

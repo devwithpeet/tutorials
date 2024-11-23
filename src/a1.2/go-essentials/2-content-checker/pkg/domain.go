@@ -37,6 +37,7 @@ const (
 	Summary     Badge = "summary"
 	Unchecked   Badge = "unchecked"
 	NoEmbed     Badge = "no-embed"
+	Audio       Badge = "audio"
 )
 
 type Audience string
@@ -72,12 +73,11 @@ var validAudiences = map[Audience]struct{}{
 type Importance string
 
 const (
-	Critical   Importance = "critical"
-	Essential  Importance = "essential"
-	Important  Importance = "important"
-	Relevant   Importance = "relevant"
-	Optional   Importance = "optional"
-	Irrelevant Importance = "irrelevant"
+	Critical  Importance = "critical"
+	Essential Importance = "essential"
+	Important Importance = "important"
+	Relevant  Importance = "relevant"
+	Optional  Importance = "optional"
 )
 
 func (i Importance) Level() int {
@@ -92,8 +92,6 @@ func (i Importance) Level() int {
 		return 2
 	case Optional:
 		return 1
-	case Irrelevant:
-		return 0
 	}
 
 	return -1

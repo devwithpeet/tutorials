@@ -310,6 +310,8 @@ func extractBadges(content string) (Badge, bool, []string) {
 			badges = append(badges, badge)
 		case NoEmbed:
 			noEmbed = true
+		case Audio:
+			continue
 		default:
 			issues = append(issues, fmt.Sprintf("Unknown badge: '%s'", badge))
 		}
